@@ -1,0 +1,2 @@
+<apex:page standardController="Contact" recordSetVar="accs" extensions="sendBulkWhatsappMessages" action="{!redirectToLC}" >
+</apex:page>

@@ -1,0 +1,98 @@
+<template>
+    <lightning-card>
+        <lightning-tabset class="slds-tabs">
+            <lightning-tab label={label.API_Key_Setup}>
+                    <div class="slds-p-bottom_small slds-p-left_medium">
+                        <lightning-formatted-url style="text-decoration: underline;" value="https://app.wati.io/login" tooltip="https://app.wati.io/login" label="Click here" target="_blank" ></lightning-formatted-url>&nbsp;to know your WATI API Information.
+                    </div>
+                    <lightning-accordion allow-multiple-sections-open active-section-name="APIInfo">
+                        <lightning-accordion-section name="APIInfo" label="API Key Information">
+                            <lightning-layout multiple-rows="true" style="overflow-y: auto;" class="layoutClass">
+                                <lightning-layout-item padding="around-small" size="6">
+                                    <lightning-textarea value={apiKey} label={label.API_Key} onchange={handleAPIChange}></lightning-textarea>
+                                </lightning-layout-item>
+                                <lightning-layout-item padding="around-small" size="6" style="padding-top: 40px;overflow:scroll">
+                                    Ex: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwNjYzOTJlZC0xNzEzLTQyMjktOWIwMS0yMjg3YjNjNWE3MWYiLCJ1bmlxdWVfbmFtZSI6ImVkcEBuYXJuZS5jb20iLCJuYW1laWQiOiJlZHBAbmFybmUuY29tIiwiZW1haWwiOiJlZHBAbmFybmUuY29tIiwiYXV0aF90aW1lIjoiMDQvMTgvMjAyMyAxMjoyOToxNyIsImRiX25hbWUiOiIxMDQ5OTciLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBRE1JTklTVFJBVE9SIiwiZXhwIjoyNTM0MDIzMDA4MDAsImlzcyI6IkNsYXJlX0FJIiwiYXVkIjoiQ2xhcmVfQUkifQ.x8l78YpfKbJysyIubhxZYUp9_dJ82_gs3VeIccjcH1M
+                                </lightning-layout-item>
+                                <lightning-layout-item padding="around-small" size="6">
+                                    <lightning-input value={EDUrl} label={label.End_Point_URL} onchange={handleEPURLChange}></lightning-input>
+                                </lightning-layout-item>
+                                <lightning-layout-item padding="around-small" size="6" style="padding-top: 40px;">
+                                    <lightning-formatted-text value="Ex: https://live-server-104997.wati.io"></lightning-formatted-text>
+                                </lightning-layout-item>
+                                <lightning-layout-item padding="around-small" size="6">
+                                    <lightning-input value={OBJEName} label={label.Object_Name} onchange={handleObjNameChange}></lightning-input>
+                                </lightning-layout-item>
+                                <lightning-layout-item padding="around-small" size="6" style="padding-top: 40px;">
+                                    Salesforce Object Name: Contact
+                                </lightning-layout-item>
+                                <lightning-layout-item padding="around-small" size="6">
+                                    <lightning-input value={phoneFiled} label={label.Phone_Field} onchange={handlePhoneChange}></lightning-input>
+                                </lightning-layout-item>
+                                <lightning-layout-item padding="around-small" size="6" style="padding-top: 40px;">
+                                    
+                                </lightning-layout-item>
+                            </lightning-layout> 
+                        </lightning-accordion-section>
+                    </lightning-accordion>
+                    <lightning-button label={label.Save} class="buttonClass" variant="Brand" onclick={handleAPISave}></lightning-button>
+
+            </lightning-tab>
+            <lightning-tab label={label.Template_Param_Mapping} class="custom-tab">
+                
+              <div class="slds-p-left_small slds-p-top_x-small table-container" style="overflow-y: auto;height:486px;">
+                <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                  <thead>
+                    <tr>
+                      <th style="width: 33%;">Template Name</th>
+                      <th style="width: 33%;">WATI Param Name</th>
+                      <th style="width: 33%;">SF Field API(Param Value)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template for:each={templateList} for:item="temp">
+                      <tr key={temp.templateName}>
+                        <td style="width: 33%;">{temp.templateName}</td>
+                        <td colspan="2">
+                          <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                            <tbody>
+                              <template for:each={temp.paramsList} for:item="param">
+                                <tr key={param.paramName}>
+                                  <td style="width: 33%;">{param.paramName}</td>
+                                  <td style="width: 33%;">
+                                    <div class="custom-combobox" style="overflow: visible">
+                                      <lightning-combobox
+                                        class="inputClass custom-combobox"
+                                        key={param.paramName}
+                                        name="ParamValue"
+                                        label={label.SF_Field_API_Name}
+                                        value={param.paramValue}
+                                        data-template={temp.templateName}
+                                        data-param={param.paramName}
+                                        placeholder="Select Field"
+                                        options={options}
+                                        dropdown-alignment="auto"
+                                        onchange={handleParamChange}
+                                      ></lightning-combobox>
+                                    </div>
+                                  </td>
+                                </tr>
+                              </template>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+              
+                  
+                <div class="slds-align_absolute-center slds-p-top_small">
+                    <lightning-button class="buttonClass1" label={label.Save} variant="Brand" onclick={handleSaveTemplates}></lightning-button>
+                    <lightning-button label={label.Update_Templates} class="slds-p-left_small buttonClass1" onclick={handleUpdateTemplates}></lightning-button>
+                </div>
+            </lightning-tab>
+        </lightning-tabset>
+    </lightning-card>
+</template>

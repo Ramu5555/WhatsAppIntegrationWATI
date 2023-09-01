@@ -1,0 +1,461 @@
+<template>
+    <article class="slds-card container" part="card">
+        <div class="slds-card__header slds-grid" style="margin-bottom: -20px;"></div>
+        <div class="slds-card__body">
+            <lightning-layout multiple-rows="true">
+                <lightning-layout-item size="2">
+                    <div style="padding-left: 5%;">
+                        <div onkeyup={handleKeyUp}>
+                            <lightning-input
+                                name="enter-search"
+                                label="Search by Name"
+                                type="search"
+                            ></lightning-input>
+                        </div>
+                    </div> 
+                </lightning-layout-item>
+                <lightning-layout-item size="4" >
+                    <div style="padding-left: 4%;margin-top:10px;">
+                        <img src={whatAppBlankProfile} alt="Profile" style="height: 35px; width: 35px;border-radius: 50%;"/>&nbsp;&nbsp;<span class="fontSize"><b>{contactName}</b></span>
+                    </div>
+                </lightning-layout-item>
+                <lightning-layout-item size="6">
+                    <div style="margin-top:10px;">
+                        <img src={WhatsAppIcon} alt={label.WhatsApp} style="height: 40px; width: 40px;border-radius: 50%;margin-left:22px;"/><span class="fontSize"><b>{label.WhatsApp}</b></span>
+                    </div>
+                </lightning-layout-item>
+            </lightning-layout>
+            <!-- <lightning-layout-item size="12"> -->
+                <div class="slds-var-p-left_small slds-var-p-right_small slds-vertical-tabs">
+                    <ul class="slds-vertical-tabs__nav" style={navHeight} role="tablist" aria-orientation="vertical" active-tab-value={activeTab}>
+                        <template for:each={contactList} for:item="contact">
+                            <li class="slds-vertical-tabs__nav-item" title={contact.fullName} role="presentation" key={contact.fullName} value={contact.fullName} phone={contact.phone}>
+                                <a class="slds-vertical-tabs__link" href="#" role="tab" tabindex="0" aria-selected="true" aria-controls="slds-vertical-tabs-0" id="slds-vertical-tabs-0__nav" value={contact.fullName} phone={contact.phone} onclick={handleActive} contactid={contact.recId}>
+                                    <img src={whatAppBlankProfile} alt="Profile" style="height: 30px; width: 30px;border-radius: 50%;"/>&nbsp;&nbsp;<span class="slds-truncate" title={contact.fullName} style="font-size: medium;" data-value={contact.fullName} data-phone={contact.phone} onclick={handleNameClick}><b>{contact.fullName}</b></span>
+                                  </a>
+                                  <template if:true={contact.contactMatch}><span class="icon-container" onmouseover={handleContactMouseOver}><lightning-icon title={contactIconTitle} conname={contact.fullName} conphone={contact.phone} contactid={contact.recId} icon-name="standard:contact" size="small" onclick={handleContactClick}></lightning-icon></span></template>
+                                  <template if:true={contact.newLead}><span><lightning-icon title="Create Record" icon-name="utility:add" size="x-small"  value={contact.fullName} phone={contact.phone} onclick={handleNewClick}></lightning-icon></span></template>
+                                  <template if:true={contact.leadMatch}><span onmouseover={handleLeadMouseOver}><lightning-icon title={LeadIconTitle} leadname={contact.fullName} leadphone={contact.phone} leadid={contact.recId} icon-name="standard:lead" size="small" onclick={handleLeadClick}></lightning-icon></span></template>
+
+                            </li>
+                        </template>
+                    </ul>
+                    <div class="slds-vertical-tabs__content slds-show" id="slds-vertical-tabs-0" role="tabpanel" aria-labelledby="slds-vertical-tabs-0__nav">
+                        <div class="frame">
+                            <div class="content">
+                                <div class="messages" onscroll={handleNotification}>
+                                    <template for:each={listofMessages} for:item="items">
+                                        <ul key={items}>
+                                            <template if:true={items.messageStatus}>
+                                                <li class="replies">
+                                                <template if:true={items.messtype}>
+                                                    <img src="http://emilcarlsson.se/assets/mikeross.png" alt="" />
+                                                    <lightning-layout>
+                                                        <lightning-layout-item  class="slds-col_bump-left slds-col_bump-top">
+                                                            <span class="fontsize slds-p-right_small">
+                                                                <lightning-formatted-date-time
+                                                                        value={items.createdDate}
+                                                                        year="numeric"
+                                                                        month="numeric"
+                                                                        day="numeric"
+                                                                        hour="2-digit"
+                                                                        minute="2-digit">
+                                                                </lightning-formatted-date-time>
+                                                            </span>
+                                                        </lightning-layout-item>
+                                                        <lightning-layout-item >
+                                                            <span class="spanclassone">
+                                                                <template if:true={items.Doc}>
+                                                                        <!-- <a href={items.textMessage} download={items.fileName} class="slds-align_absolute-center"> -->
+                                                                            <!-- <lightning-icon style="margin-bottom: 18px;" value={items.textMessage} icon-name="utility:download" size="xx-small" class="downloadicon" alternative-text={label.Download} title={label.Download} onclick={handleDownloadClick}>
+                                                                            </lightning-icon> -->
+                                                                            <lightning-icon icon-name="standard:file" style="margin-left: 2px;" alternative-text={items.fileName} title={items.fileName} onclick={handleDownloadClick} value={items.textMessage}>
+                                                                            </lightning-icon>
+                                                                        <!-- </a> -->
+                        
+                                                                </template>
+                                                                <template if:true={items.img}>
+                                                                    <!-- <a href={items.textMessage} download={items.fileName} class="slds-align_absolute-center"> -->
+                                                                        <!-- <lightning-icon style="margin-bottom: 18px;" value={items.textMessage} icon-name="utility:download" size="xx-small" class="downloadicon" alternative-text={label.Download} title={label.Download} onclick={handleDownloadClick}>
+                                                                        </lightning-icon> -->
+                                                                        <lightning-icon icon-name="doctype:image" alternative-text={items.fileName} title={items.fileName} onclick={handleDownloadClick} value={items.textMessage}>
+                                                                        </lightning-icon>
+                                                                    <!-- </a> -->
+                                                                </template>
+                                                            </span>
+                                                        </lightning-layout-item>
+                                                    </lightning-layout>
+                                            </template>
+                                            <template if:false={items.messtype}>
+                                                <img src="http://emilcarlsson.se/assets/mikeross.png" alt="" />
+                                                    <lightning-layout>
+                                                        <lightning-layout-item class="slds-col_bump-left slds-col_bump-top">
+                                                            <span class="fontsize slds-p-right_small">
+                                                                <lightning-formatted-date-time
+                                                                        value={items.createdDate}
+                                                                        year="numeric"
+                                                                        month="numeric"
+                                                                        day="numeric"
+                                                                        hour="2-digit"
+                                                                        minute="2-digit">
+                                                                </lightning-formatted-date-time>
+                                                            </span>		
+                                                        </lightning-layout-item>
+                                                        <lightning-layout-item>
+                                                            <p><lightning-formatted-text value={items.textMessage} style="overflow-wrap: break-word;"></lightning-formatted-text></p>
+                                                        </lightning-layout-item>
+                                                    </lightning-layout>	
+                                            </template>
+                                            </li>
+                                        </template>
+                                    <template if:false={items.messageStatus}>
+                                        <li class="sent">
+                                        <template if:true={items.messtype}>
+                                            <img src="http://emilcarlsson.se/assets/mikeross.png" alt="" />
+                                            <span class="spanclassone">
+                                                <lightning-layout>
+                                                    <lightning-layout-item>
+                                                        <template if:true={items.Doc}>
+                                                            <!-- <a href={items.textMessage} download={items.fileName} class="slds-align_absolute-center"> -->
+                                                                <lightning-icon icon-name="standard:file" alternative-text={items.fileName} title={items.fileName} onclick={handleDownloadClick} value={items.textMessage}>
+                                                                </lightning-icon>
+                                                                <!-- <lightning-icon style="margin-left: 2px;margin-bottom: 18px;" value={items.textMessage} icon-name="utility:download" size="xx-small" class="slds-p-right_small downloadicon" alternative-text={label.Download} title={label.Download}>
+                                                                </lightning-icon> -->
+                                                            <!-- </a> -->
+                                                        </template>
+                                                        <template if:true={items.img}>
+                                                            <!-- <a href={items.textMessage} download={items.fileName} class="slds-align_absolute-center"> -->
+                                                                <lightning-icon icon-name="doctype:image" alternative-text={items.fileName} title={items.fileName} onclick={handleDownloadClick} value={items.textMessage}>
+                                                                </lightning-icon>
+                                                                <!-- <lightning-icon style="margin-bottom: 18px;" value={items.textMessage} icon-name="utility:download" size="xx-small" class="slds-p-right_small  downloadicon" alternative-text={label.Download} title={label.Download} onclick={handleDownloadClick}>
+                                                                </lightning-icon> -->
+                                                            <!-- </a> -->
+                                                        </template>
+                                                    </lightning-layout-item>
+                                                    <lightning-layout-item alignment-bump="top">
+                                                        <span class="fontsize">
+                                                            <lightning-formatted-date-time
+                                                                        value={items.createdDate}
+                                                                        year="numeric"
+                                                                        month="numeric"
+                                                                        day="numeric"
+                                                                        hour="2-digit"
+                                                                        minute="2-digit"
+                                                                        class="slds-p-left_small">
+                                                            </lightning-formatted-date-time>
+                                                        </span>
+                                                    </lightning-layout-item>
+                                                </lightning-layout>
+                                            </span>
+                                        </template>
+                                        <template if:false={items.messtype}>
+                                            
+                                                <img src="http://emilcarlsson.se/assets/mikeross.png" alt="" />
+                                                <lightning-layout>
+                                                    <lightning-layout-item>
+                                                        <p><lightning-formatted-text value={items.textMessage} style="overflow-wrap: anywhere;"></lightning-formatted-text></p>
+                                                    </lightning-layout-item>
+                                                    <lightning-layout-item alignment-bump="top">
+                                                        <span class="fontsize">
+                                                            <lightning-formatted-date-time
+                                                                    value={items.createdDate}
+                                                                    year="numeric"
+                                                                    month="numeric"
+                                                                    day="numeric"
+                                                                    hour="2-digit"
+                                                                    minute="2-digit"
+                                                                    class="slds-p-left_small">
+                                                            </lightning-formatted-date-time>
+                                                        </span>
+                                                    </lightning-layout-item>
+                                                </lightning-layout>
+                                            </template>
+                                            </li>
+                                        </template>
+                            
+                                        </ul>
+                                    </template>
+                                </div>
+                            </div>
+                             <div class="message-input">
+                                <div class="slds-box slds-box_xx-small">
+                                    <lightning-layout multiple-rows>
+                                        <lightning-layout-item class="slds-size_0.5-of-12">
+                                            <div class="sendiconmainclass" style="margin-top: 10px;">
+                                                <lightning-button-menu class="menuicon" nubbin alternative-text="Show Menu" variant="bare" icon-name="utility:add" menu-alignment="auto" onselect={handleSelect}>
+                                                    <lightning-menu-item class="attachicon" value="attachment" prefix-icon-name="standard:attach" label={label.Attach}></lightning-menu-item>
+                                                    <lightning-menu-item class="qreplyicon" value="quickreply" prefix-icon-name="standard:quick_text" label={label.Quick_Reply}  onclick={handleQuickReply}></lightning-menu-item>
+                                                </lightning-button-menu>
+                                            </div>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item class="slds-size_0.5-of-12">
+                                            <div class="sendiconmainclass" style="margin-top: 10px;">
+                                                <lightning-button-icon icon-name="action:refresh" 
+                                                variant="brand" alternative-text="Refresh" size="large" 
+                                                class="sendicon slds-p-left_small" title="Refresh" onclick={handleRefresh}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item class="slds-size_0.5-of-12">
+                                            <div class="sendiconmainclass" style="margin-right: 8px; margin-top: 10px;">
+                                                <lightning-button-icon icon-name="utility:text_template" 
+                                                variant="brand" alternative-text="Template" size="large" 
+                                                class="sendicon slds-p-left_small" title="Send Template" onclick={handleSendTemplate}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item class="slds-size_10-of-12">
+                                            <div class="inputmainclass" >
+                                                <textarea style="margin-bottom: 13px;margin-top:10px; height:33px;" id="textarea-id-01" placeholder={label.Write_your_message} class="slds-textarea" data-id="maininput" value={message} onkeydown={handleEnterPress}></textarea>
+                                            </div>
+                                        </lightning-layout-item>
+                        
+                                        <lightning-layout-item class="slds-size_0.5-of-12">
+                                            <div class="sendiconmainclass" style="margin-left: 5px; margin-top: 10px;">
+                                                <lightning-button-icon icon-name="utility:send" 
+                                                variant="brand" alternative-text={label.Send} size="large" 
+                                                class="sendicon" title={label.Send} onclick={handleClick} disabled={buttonClicked}>
+                                                </lightning-button-icon>
+                                            </div>
+                                        </lightning-layout-item>
+                                    </lightning-layout>
+                                </div>
+                            </div> 
+                        </div>
+                        
+                        <template if:true={showUpload}>
+                            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small" aria-labelledby="modal-heading-01" aria-modal="true">
+                                <div class="slds-modal__container">
+                                    <div class="slds-modal__header">
+                                        <slot name="headercontent">{label.Attachments}</slot>
+                                    </div>
+                                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                                        <slot name="bodycontent">
+                                            <lightning-file-upload
+                                            label=""
+                                            name="fileUploader"
+                                            accept={acceptedFormats}
+                                            record-id={recordId}
+                                            onuploadfinished={handleUploadFinished}
+                                            >
+                                        </lightning-file-upload>
+                                        </slot>
+                                    </div>
+                                    <div class="slds-modal__footer">
+                                        <slot name="footercontent">
+                                            <lightning-button label={label.Close} variant="brand" onclick={closeUpload}></lightning-button>
+                                        </slot>
+                                    </div>
+                                </div>
+                            </section>
+                            <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+                        </template>
+                        <template if:true={previewFile}>
+                            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small" aria-labelledby="modal-heading-01" aria-modal="true">
+                                <div class="slds-modal__container">
+                                    <div class="slds-modal__header">
+                                        <slot name="headercontent1">{label.Preview_File}</slot>
+                                    </div>
+                                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+                                        <slot name="bodycontent2">
+                                            {label.Preview}
+                                            <div class="slds-page-header__row slds-var-m-top_x-small slds-var-m-left_medium slds-grid slds-wrap">
+                                            <ul class="slds-grid slds-wrap slds-gutters">
+                                              <template if:true={loaded}>
+                                                <template for:each={files} for:item="file">
+                                                  <c-preview-attachments
+                                                    key={file.Id}
+                                                    file={file}
+                                                    record-id={recordId}
+                                                    thumbnail={file.thumbnailFileCard}
+                                                  ></c-preview-attachments>
+                                                </template>
+                                              </template>
+                                            </ul>
+                                          </div>
+                                        </slot>
+                                    </div>
+                                    <div class="slds-modal__footer">
+                                        <slot name="footercontent1">
+                                            <lightning-button label="Send" variant="brand" onclick={sendFile} disabled={filebutton}></lightning-button>
+                                            <lightning-button class="slds-p-left_x-small" label={label.Close} variant="brand" onclick={closePreview}></lightning-button>
+                                        </slot>
+                                    </div>
+                                </div>
+                            </section>
+                            <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+                        </template>
+                        <template if:true={showQuickreply}>
+                            <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_medium" >
+                                <div class="slds-modal__container" >
+                                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title={label.Close} onclick={handleCloseQuickreply}>
+                                        <lightning-icon icon-name="utility:close"
+                                        alternative-text={label.Close}
+                                        variant="inverse"
+                                        size="small" ></lightning-icon>
+                                        <span class="slds-assistive-text">Close</span>
+                                    </button> 
+                                    <div class="slds-modal__header">
+                                        <div class="slds-grid slds-gutters">
+                                            <div class="slds-col slds-size_4-of-12 slds-float_left">
+                                                <b><h1 id="modal-heading-02" class="slds-p-left_medium slds-p-top_large slds-float_left">{label.Use_a_Quick_Response}</h1></b>
+                                            </div>
+                                            <div class="slds-col slds-size_3-of-12">
+                                                <lightning-combobox
+                                                name="progress"
+                                                value={selectOption}
+                                                placeholder="Select"
+                                                options={options}
+                                                onchange={handleSelectChange} ></lightning-combobox>
+                                            </div>
+                                            <div class="slds-col slds-size_3-of-12">
+                                                <lightning-input placeholder={label.Search} value={searchKey} onchange={handleKeyChange}></lightning-input>
+                                            </div>
+                                            <div class="slds-col slds-size_2-of-12 slds-p-top_medium">
+                                                <lightning-button label={label.Create} variant="brand" onclick={handleCreateQuickResponse}></lightning-button>
+                                            </div>
+                                        </div>
+                    
+                                    </div>
+                                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-3" style="height:70%; width:100%;">
+                                        <p>
+                                            <template for:each={responseList} for:item="res" for:index="index">
+                                                <div key={res} class="slds-box slds-p-around_large slds-col" style="height:2%; width:100%;margin-bottom:10px;">
+                                                    <article class="slds-card">
+                                                        <div class="slds-card__header slds-grid slds-box" style="background-color: rgb(228, 226, 226);">
+                                                            <header class="slds-media slds-has-flexi-truncate">
+                                                                <div class="slds-media__figure"></div>
+                                                                <div class="slds-media__body">
+                                                            <div class="slds-card__header-title slds-hyphenate slds-text-heading--medium" >
+                                                                <lightning-formatted-text value={res.Name} style="overflow-wrap: anywhere;">	
+                                                                </lightning-formatted-text>	
+                                                            </div>
+                                                        </div>
+                                                            <div class="slds-no-flex">
+                                                                <lightning-button-icon icon-name="utility:edit" data-id={index}  alternative-text={label.Edit} class="" title={label.Edit} onclick={handleEditResponse}></lightning-button-icon>
+                                                                <lightning-button-icon icon-name="utility:delete" data-id={index} alternative-text={label.Delete} class="slds-m-left_medium " title={label.Delete} onclick={handleDeleteResponse}></lightning-button-icon>
+                                                                
+                                                            </div>
+                                                        </header>
+                                                        </div>
+                                                        <div class="slds-card__body slds-card__body_inner slds-p-left_x-large">
+                                                        <div class="demo-only demo-only--sizing slds-grid slds-wrap">
+                                                            <div class="slds-size_11-of-12">
+                                                                <lightning-formatted-text value={res.DhruvsoftWATI__Description__c} style="overflow-wrap: anywhere;"></lightning-formatted-text>
+                                                             </div>
+                                                            <div class="slds-size_1-of-12">
+                                                            </div>
+                                                            <div class="slds-size_12-of-12">
+                                                                <lightning-button-icon icon-name="utility:send" 
+                                                                alternative-text={label.Send} size="large" data-id={index}
+                                                                class="slds-float_right" title={label.Send} onclick={handleSendMsg}>
+                                                                </lightning-button-icon>
+                                                            </div>
+                        
+                                                        </div>
+                                                        </div>
+                                                    </article>
+                                                </div>
+                                            </template>
+                                        </p>	
+                                    </div>
+                                </div>
+                            </section>
+                            <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+                        </template>
+                    
+                        <template if:true={createQuickResponse}>
+                            <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_medium">
+                                <div class="slds-modal__container">
+                                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title={label.Close} onclick={handleCloseCreateQuickResponse}>
+                                        <lightning-icon icon-name="utility:close"
+                                        alternative-text={label.Close}
+                                        variant="inverse"
+                                        size="small" ></lightning-icon>
+                                        <span class="slds-assistive-text">Close</span>
+                                    </button>
+                                    <div class="slds-modal__header">
+                                        <b><h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate slds-p-left_large slds-p-top_large slds-float_left">{label.Create_a_new_quick_response}</h1></b>
+                                    </div>
+                                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-4">
+                                    
+                                        <lightning-record-edit-form data-id="ResponseForm" object-api-name="DhruvsoftWATI__Quick_Response__c" record-id={responseObj.Id} onsuccess={handleSuccess} onsubmit={handleSubmit}>
+                                            <lightning-input-field field-name="Name" data-name="Name"  required></lightning-input-field>  
+                                            <lightning-input-field field-name="DhruvsoftWATI__Description__c" data-name="DhruvsoftWATI__Description__c"  required></lightning-input-field>  
+                                        
+                                            <lightning-button class="slds-float_right slds-p-around_medium" variant="brand" label={label.Save} type="submit"></lightning-button>
+                                        </lightning-record-edit-form>
+                                    </div>
+                                </div>
+                            </section>
+                            <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+                        </template>
+        </div>
+                    </div>
+                                 
+            <!-- </lightning-layout-item> -->
+        </div>
+    </article>
+    <template if:true={shownewModal}>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_small">
+            <div class="slds-modal__container" style="padding-left: 15%;">
+                <lightning-button-icon class="slds-modal__close" title={label.Close} icon-name="utility:close"
+                icon-class="slds-button_icon-inverse" onclick={handleContactCancel}>
+                </lightning-button-icon>
+                <div class="slds-modal__header">
+                    <h1 id="modal-heading-5" class="slds-modal__title slds-hyphenate">New Contact/Lead</h1>
+                </div>
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-5">
+                <lightning-card >
+                    <template if:true={radioSelect}>
+                        <lightning-radio-group name="radioGroup"
+                                                label="Select Object"
+                                                options={radiooptions}
+                                                value={value}
+                                                onchange={handleRadioChange}
+                                                type="radio"></lightning-radio-group>
+                    </template>
+                    <template if:true={contactRadioSelect}>
+                        <lightning-record-edit-form object-api-name="Contact" onsuccess={handleSuccessContact}>
+                            <lightning-input-field field-name="LastName" value={contactNamee} label="Name"></lightning-input-field>
+                            <lightning-input-field field-name="Phone" value={contactPhone}></lightning-input-field>
+                            <div class="slds-var-m-top_medium slds-align_absolute-center">
+                                <!-- <button class="slds-button slds-button_neutral" onclick={handleContactCancel}>Cancel</button> -->
+                                <lightning-button label="Cancel" class="slds-m-left_x-small" onclick={handleContactCancel}></lightning-button>
+                                <lightning-button variant="brand" type="submit" label="Save" class="slds-m-left_x-small"></lightning-button>
+                            </div>
+                    </lightning-record-edit-form>
+                    </template>
+                    <template if:true={leadRadioSelect}>
+                        <lightning-record-edit-form object-api-name="Lead" onsuccess={handleSuccessLead}>
+                            <lightning-input-field field-name="LastName" value={leadNamee} label="Name"></lightning-input-field>
+                            <lightning-input-field field-name="Phone" value={leadPhone}></lightning-input-field>
+                            <lightning-input-field field-name="Status" ></lightning-input-field>
+                            <lightning-input-field field-name="Company" ></lightning-input-field>
+                            <div class="slds-var-m-top_medium slds-align_absolute-center">
+                                <!-- <button class="slds-button slds-button_neutral" onclick={handleContactCancel}>Cancel</button> -->
+                                <lightning-button label="Cancel" class="slds-m-left_x-small" onclick={handleContactCancel}></lightning-button>
+                                <lightning-button variant="brand" type="submit" label="Save" class="slds-m-left_x-small"></lightning-button>
+                            </div>
+                    </lightning-record-edit-form>
+                    </template>
+                </lightning-card>
+            </div>
+            
+            </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+    </template>
+    <template if:true={sendTemplate}>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_small">
+            <div class="slds-modal__container" style="padding-left: 15%;">
+                <lightning-button-icon class="slds-modal__close" title={label.Close} icon-name="utility:close"
+                icon-class="slds-button_icon-inverse" onclick={cancelChild}>
+                </lightning-button-icon>
+                <c-send-predefined-message phone-number={recPhoneNumber} con-name={recContactName} onchildevent={handleChildEvent}></c-send-predefined-message>
+            </div>
+            
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+    </template>
+</template>

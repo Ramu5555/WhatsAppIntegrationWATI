@@ -1,0 +1,35 @@
+.paddingClass {
+    padding-left: 2%;
+    padding-right: 45%;
+}
+.buttonClass {
+    padding-left: 25%;
+    font-size: 15px;
+}
+.table-container {
+    max-height: 486px; /* Set the desired maximum height */
+    overflow-y: auto; /* Enable vertical scrolling when content exceeds the height */
+  }
+.slds-tabs {
+    /* text-transform: capitalize !important; */
+    font-size: 20px; /* Adjust the font size as per your preference */
+  }
+  .buttonClass1 {
+    font-size: 15px;
+  }
+  .inputClass {
+    font-size: 15px;
+  }
+  /* .custom-combobox {
+    position: relative;
+    z-index: 9999; /* Set the desired z-index value 
+  }
+  .custom-accordion {
+    position: relative;
+    z-index: 1;
+  } */
+  .custom-combobox .slds-dropdown {
+    position: absolute;
+    z-index: 9999;
+    top: -100%;
+  }

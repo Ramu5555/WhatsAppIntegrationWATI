@@ -1,0 +1,125 @@
+<template>
+    <template if:true={openModal}>
+        <template if:true={hideModal}>
+        <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_medium">
+            <div class="slds-modal__container">
+            <lightning-button-icon class="slds-modal__close" title={label.Close} icon-name="utility:close"
+            icon-class="slds-button_icon-inverse" onclick={Cancel}>
+            </lightning-button-icon>
+            <div class="slds-modal__header">
+            <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">{label.SendMessage}</h1>
+            </div>
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                <lightning-card >
+                    <template if:true={displayTemplates}>
+                    <div class="slds-table_col-bordered slds-table_bordered">
+                        <lightning-datatable    key-field="id" 
+                                                columns={mycolumns}
+                                                data={data}
+                                                onrowselection={handleRowSelection}
+                                                onrowaction={callRowAction}
+                                                style=" width: 100% !important;"
+                                                max-row-selection="1"
+                                                resize-column-disabled	=true ><!-- show-row-number-column = "true" -->
+                        </lightning-datatable>
+                    </div>
+                </template>
+                <template if:true={displayErrorMessage}>
+                    <span class="slds-align_absolute-center slds-text-color_error slds-text-heading_medium">{label.ListViewMessage}</span>
+                </template>
+                </lightning-card>
+                
+            </div>
+            <div >
+                <!-- Modal/Popup Box LWC footer starts here -->
+                <footer class="slds-modal__footer slds-align_absolute-center">
+                    <button class="slds-button slds-button_neutral" onclick={Cancel}>{label.Cancel}</button>
+                    <template if:true={sendbutton}>
+                    <lightning-button variant="brand" label={label.send} onclick={handleClick} class="slds-m-left_x-small"></lightning-button>
+                </template>
+                </footer>
+            </div>
+            </div>
+            </section>
+        </template>
+            <template if:true={showMessage}>
+                <!-- Modal/Popup Box LWC starts here hello-->
+                <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_medium">
+                    <div class="slds-modal__container">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title={label.Close} onclick={hideDisplayModalBox}>
+                            <lightning-icon icon-name="utility:close"
+                               alternative-text={label.Close}
+                               variant="inverse"
+                               size="small" ></lightning-icon>
+                            <span class="slds-assistive-text">{label.Close}</span>
+                         </button>
+                        <div class="slds-modal__header">
+                           <h1 id="modal-heading-02" class="slds-modal__title slds-hyphenate">{label.Template_Message}</h1>
+                        </div>
+                        <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-2">
+                           <lightning-formatted-text value={templateebody} class="slds-align_absolute-center messagepadding" style="text-align: center;"></lightning-formatted-text>
+                        </div>
+                            <div class="slds-modal__footer">
+                                <button class="slds-button slds-button_neutral" onclick={hideDisplayModalBox}>{label.Cancel}</button>
+                            </div>
+                    </div>
+                </section>
+                </template>
+                <template if:true={resultinvalid}>
+                    <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_medium">
+                        <div class="slds-modal__container">
+                            <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title={label.Close} onclick={navigatetoView}>
+                                <lightning-icon icon-name="utility:close"
+                                   alternative-text={label.Close}
+                                   variant="inverse"
+                                   size="small" ></lightning-icon>
+                                <span class="slds-assistive-text">{label.Close}</span>
+                             </button>
+                            <div class="slds-modal__header">
+                               <h1 id="modal-heading-03" class="slds-modal__title slds-hyphenate">{label.Result}</h1>
+                            </div>
+                            <div class="slds-modal__content slds-p-around_medium "  id="modal-content-id-3">
+                               <div class="slds-p-left_small slds-grid" style="padding-bottom: 13px;">
+                                <lightning-icon icon-name="action:approval" size="xx-small" ></lightning-icon>
+                                <span class="slds-text-heading_medium slds-p-left_small slds-form-element__label slds-col"> {label.SentMessage}: {validCount}</span>
+                            </div>
+                               <template if:true={displayInvalNo}>
+                             
+                               <div class="slds-text-color_error slds-text-heading_medium slds-border_top" style="padding-top: 12px; padding-left:20px;padding-bottom:12px;">{label.PhoneError}</div>
+                                    <!--{memberName}{memberMobileNumber}-->
+                                    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                                        <thead>
+                                            <tr class="slds-line-height_reset">
+                                                <th class="" scope="col">
+                                                    <div class="slds-truncate" title={label.Contact_Name}>{label.Contact_Name}</div>
+                                                  </th>
+                                                  <th class="" scope="col">
+                                                    <div class="slds-truncate" title={label.Contact_Phone}>{label.Contact_Phone}</div>
+                                                  </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template for:each={invalidMemberList} for:item ="member">
+                                                <tr class="" key ={member.key}>
+                                                    <td data-label="Member Name">
+                                                        <div class="slds-cell-wrap">{member.value}</div>
+                                                    </td>
+                                                    <td data-label="Member Phone">
+                                                        <div class="slds-cell-wrap">{member.key}</div>
+                                                    </td>
+                                                </tr>
+                                            </template> 
+                                        </tbody>
+                                    </table>
+                                </template>
+                            </div>
+                            
+                                <div class="slds-modal__footer">
+                                    <button class="slds-button slds-button_neutral slds-align_absolute-center" onclick={navigatetoView}>{label.Done}</button>
+                                </div>
+                        </div>
+                    </section>
+                </template>
+            <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+    </template>
+</template>

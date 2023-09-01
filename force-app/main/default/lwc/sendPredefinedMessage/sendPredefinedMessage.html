@@ -1,0 +1,49 @@
+<template>
+    <lightning-quick-action-panel header={label.Send_Message}>
+        <lightning-card >
+            <template if:true={showSpinner}>
+                <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+            </template>
+            <div class="slds-table_col-bordered slds-table_bordered">
+                <lightning-datatable    key-field="id" 
+                                        columns={mycolumns}
+                                        data={data}
+                                        onrowselection={handleRowSelection}
+                                        onrowaction={callRowAction}
+                                        max-row-selection="1" 
+                                        style=" width: 100% !important;"
+                                        resize-column-disabled	=true><!-- show-row-number-column = "true" -->
+                </lightning-datatable>
+            </div>
+        </lightning-card>
+        <div slot="footer" class="slds-m-top_small slds-m-bottom_medium slds-align_absolute-center">
+            <lightning-button label={label.Cancel} onclick={cancel} class="slds-m-left_x-small"></lightning-button>
+            <lightning-button variant="brand" label={label.Send} onclick={handleClick} disabled={buttonClicked} class="slds-m-left_x-small"></lightning-button>
+        </div>
+        <template if:true={showMessage}>
+            <!-- Modal/Popup Box LWC starts here hello-->
+            <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={hideDisplayModalBox}>
+                        <lightning-icon icon-name="utility:close"
+                           alternative-text={label.close}
+                           variant="inverse"
+                           size="small" ></lightning-icon>
+                        <span class="slds-assistive-text">{label.close}</span>
+                     </button>
+                    <div class="slds-modal__header">
+                       <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">{label.Template_Message}</h1>
+                    </div>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                       <lightning-formatted-text value={templateebody} class="slds-align_absolute-center messagepadding" style="text-align: center;"></lightning-formatted-text>
+                    </div>
+                        <div class="slds-modal__footer">
+                            <button class="slds-button slds-button_neutral" onclick={hideDisplayModalBox}>{label.Cancel}</button>
+                        </div>
+                </div>
+            </section>
+             <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+        </template>
+       </lightning-quick-action-panel>
+    
+    </template>

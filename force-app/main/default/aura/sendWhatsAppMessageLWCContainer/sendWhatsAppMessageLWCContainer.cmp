@@ -1,0 +1,9 @@
+<aura:component implements="force:hasRecordId,flexipage:availableForAllPageTypes" access="global">
+    <aura:handler name="change" value="{!v.recordId}" action="{!c.onRecordIdChange}"/>
+    <aura:attribute name="memberId"  type="String"/>
+    <lightning:utilityBarAPI aura:id="utilitybar" />
+    <aura:attribute name="passData"  type="boolean" default="false"/>
+    <aura:if isTrue="{!v.passData}">
+        <c:sendWhatsappSingleMessage recordId="{!v.memberId}" ></c:sendWhatsappSingleMessage>
+    </aura:if> 
+</aura:component>
