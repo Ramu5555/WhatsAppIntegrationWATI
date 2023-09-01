@@ -10,30 +10,41 @@ public class WhatsAppController {
     @AuraEnabled(cacheable=true)
     public static void saveTemplateMetadata()
     {
-        DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
-        Http http = new Http();
-        HttpRequest request = new HttpRequest();
-        request.setEndpoint(watiAPIConfig.End_Point_URL__c+'v1/getMessageTemplates?pageSize=100&pageNumber=1');
-        request.setHeader('Authorization', 'Bearer ' +watiAPIConfig.API_Key__c);
-        request.setMethod('GET');
-        HttpResponse response = http.send(request);
-        system.debug('getTemplatesResponse-------->'+response.getStatusCode());
-        if(response.getStatusCode() == 200){
-            
-            ResponseWrapper responseWrapper = (ResponseWrapper)JSON.deserialize(response.getBody(), ResponseWrapper.class);
-            System.debug('result--------->'+responseWrapper.result);
-            if(responseWrapper.result == 'success'){
-                SuccessWrapper successWrap = (SuccessWrapper)JSON.deserialize(response.getBody(), SuccessWrapper.class);
-                for(MessageTemplates temp : successWrap.messageTemplates){
-                    if(temp.status == 'APPROVED'){
-                        System.debug('temp.status: '+temp.status);
-                        for(CustomParams  cuspa : temp.customParams){
-                            CustomMetadataUtils.createTemplateMetaData(temp.elementName,cuspa.paramName,temp.bodyOriginal);
+        try{
+            DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
+            Http http = new Http();
+            HttpRequest request = new HttpRequest();
+            request.setEndpoint(watiAPIConfig.End_Point_URL__c+'v1/getMessageTemplates?pageSize=100&pageNumber=1');
+            request.setHeader('Authorization', 'Bearer ' +watiAPIConfig.API_Key__c);
+            request.setMethod('GET');
+            HttpResponse response = http.send(request);
+            system.debug('getTemplatesResponse-------->'+response.getStatusCode());
+            if(response.getStatusCode() == 200){
+                
+                ResponseWrapper responseWrapper = (ResponseWrapper)JSON.deserialize(response.getBody(), ResponseWrapper.class);
+                System.debug('result--------->'+responseWrapper.result);
+                if(responseWrapper.result == 'success'){
+                    SuccessWrapper successWrap = (SuccessWrapper)JSON.deserialize(response.getBody(), SuccessWrapper.class);
+                    for(MessageTemplates temp : successWrap.messageTemplates){
+                        if(temp.status == 'APPROVED'){
+                            CustomParams cusp = new CustomParams();
+                            if(temp.customParams != null && !temp.customParams.isEmpty()){
+                                System.debug('elementName: '+temp.elementName+' Params'+temp.customParams);
+                                for(CustomParams cuspa : temp.customParams){
+                                    CustomMetadataUtils.createTemplateMetaData(temp.elementName,cuspa.paramName,temp.bodyOriginal);
+                                }
+                            }else{
+                                System.debug('elementName: '+temp.elementName+' Params'+temp.customParams);
+                                CustomMetadataUtils.createTemplateMetaData(temp.elementName,'',temp.bodyOriginal);
+                            }
                         }
                     }
                 }
             }
+        }catch(Exception e){
+            System.debug('Exception: '+e.getMessage()+' Line No: '+e.getLineNumber());
         }
+        
     }
     /*=======================================Get Templates==========================================*/
     @AuraEnabled(cacheable = true)
