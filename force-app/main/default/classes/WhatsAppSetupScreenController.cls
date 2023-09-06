@@ -1,7 +1,7 @@
 public with sharing class WhatsAppSetupScreenController {
     
     private static List<DhruvsoftWATI__Template_Param_Configuration__mdt> getTemplateDetails(){
-        List<DhruvsoftWATI__Template_Param_Configuration__mdt> tempParamMDTList = [SELECT MasterLabel, DhruvsoftWATI__SF_Field_API_Name__c, DhruvsoftWATI__WA_Param_Name__c, DhruvsoftWATI__Template_Body__c FROM DhruvsoftWATI__Template_Param_Configuration__mdt];
+        List<DhruvsoftWATI__Template_Param_Configuration__mdt> tempParamMDTList = [SELECT MasterLabel,Template_Name__c, DhruvsoftWATI__SF_Field_API_Name__c, DhruvsoftWATI__WA_Param_Name__c, DhruvsoftWATI__Template_Body__c FROM DhruvsoftWATI__Template_Param_Configuration__mdt  WHERE WA_Param_Name__c !=''];
         return tempParamMDTList;
     }
     
@@ -11,21 +11,26 @@ public with sharing class WhatsAppSetupScreenController {
         Map<String, TemplateWrapper> tempWrapMap = new Map<String, TemplateWrapper>(); 
         
         for(DhruvsoftWATI__Template_Param_Configuration__mdt tempMDT : tempParamMDTList) {
-            Integer lastSpaceIndex = tempMDT.MasterLabel.lastIndexOf(' ');
-            String tempName = tempMDT.MasterLabel.substring(0, lastSpaceIndex);
+            String sfField = tempMDT.SF_Field_API_Name__c;
+            List<FieldDefinition> fields;
+            DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = [SELECT MasterLabel, DhruvsoftWATI__Object_Name__c,DhruvsoftWATI__Phone_Field__c,DhruvsoftWATI__API_Key__c,QualifiedApiName, DhruvsoftWATI__End_Point_URL__c  FROM DhruvsoftWATI__API_Configurations__mdt WHERE MasterLabel='WATI API Config'];
+            if(sfField != null){
+                fields = [SELECT Label FROM FieldDefinition WHERE EntityDefinition.QualifiedApiName =: watiAPIConfig.DhruvsoftWATI__Object_Name__c AND QualifiedApiName =: sfField LIMIT 1];   
+            }   
+            String sfFieldApiName = (sfField != null) ? fields[0].Label : '';
             
-            if (!tempWrapMap.containsKey(tempName)) {
+            if (!tempWrapMap.containsKey(tempMDT.Template_Name__c)) {
                 TemplateWrapper tempWrap = new TemplateWrapper();
-                tempWrap.templateName = tempName;
+                tempWrap.templateName = tempMDT.Template_Name__c;
                 tempWrap.paramsList = new List<ParamWrapper>();
-                tempWrapMap.put(tempName, tempWrap);
+                tempWrapMap.put(tempMDT.Template_Name__c, tempWrap);
             }
             
             ParamWrapper param = new ParamWrapper();
             param.paramName = tempMDT.WA_Param_Name__c;
-            param.paramValue = tempMDT.SF_Field_API_Name__c;
+            param.paramValue = sfFieldApiName;
             
-            TemplateWrapper tempWrapToUpdate = tempWrapMap.get(tempName);
+            TemplateWrapper tempWrapToUpdate = tempWrapMap.get(tempMDT.Template_Name__c);
             tempWrapToUpdate.paramsList.add(param);
         }
         
