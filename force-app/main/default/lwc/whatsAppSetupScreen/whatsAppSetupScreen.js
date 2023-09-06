@@ -86,9 +86,9 @@ export default class WhatsAppSetupScreen extends LightningElement {
     /*-------------------renderedCallback (to set height for template param mapping tab)-----------------------------*/
     renderedCallback() {
         let heightt = window.innerHeight;
-        const layoutelement = this.template.querySelector('.layoutClass');
+        const layoutelement = this.template.querySelector('.table-container');
         if (layoutelement) {
-            layoutelement.style.height = heightt - 375 + 'px';
+            layoutelement.style.height = heightt - 289 + 'px';
         }
 
     }

@@ -1,7 +1,7 @@
 <template>
     <lightning-card>
-        <lightning-tabset class="slds-tabs">
-            <lightning-tab label={label.API_Key_Setup}>
+        <lightning-tabset active-tab-value="paramMapping">
+            <lightning-tab label={label.API_Key_Setup}  value="APIKey">
                     <div class="slds-p-bottom_small slds-p-left_medium">
                         <lightning-formatted-url style="text-decoration: underline;" value="https://app.wati.io/login" tooltip="https://app.wati.io/login" label="Click here" target="_blank" ></lightning-formatted-url>&nbsp;to know your WATI API Information.
                     </div>
@@ -38,9 +38,9 @@
                     <lightning-button label={label.Save} class="buttonClass" variant="Brand" onclick={handleAPISave}></lightning-button>
 
             </lightning-tab>
-            <lightning-tab label={label.Template_Param_Mapping} class="custom-tab">
+            <lightning-tab label={label.Template_Param_Mapping} class="custom-tab" value="paramMapping">
                 
-              <div class="slds-p-left_small slds-p-top_x-small table-container" style="overflow-y: auto;height:486px;">
+              <div class="slds-p-left_small slds-p-top_x-small table-container">
                 <table class="slds-table slds-table_cell-buffer slds-table_bordered">
                   <thead>
                     <tr>

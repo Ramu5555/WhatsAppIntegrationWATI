@@ -7,8 +7,7 @@
     font-size: 15px;
 }
 .table-container {
-    max-height: 486px; /* Set the desired maximum height */
-    overflow-y: auto; /* Enable vertical scrolling when content exceeds the height */
+    overflow-y: scroll; /* Enable vertical scrolling when content exceeds the height */
   }
 .slds-tabs {
     /* text-transform: capitalize !important; */
