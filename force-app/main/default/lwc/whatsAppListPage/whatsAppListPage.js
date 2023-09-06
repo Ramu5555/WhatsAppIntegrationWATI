@@ -69,6 +69,7 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
     @track nextPageLink = '';
     @track loaded = false;
     @track phoneNumber;
+    @track phoneNumberrrr;
     @track fileList;
     @track files = [];
     subscription = {};
@@ -172,6 +173,7 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
                 this.activeTab = this.contactList[0].fullName;
                 this.contactName = this.contactList[0].fullName;
                 this.phoneNumber = this.contactList[0].phone;
+                this.phoneNumberrrr = this.contactList[0].phone;
                 this.recordId = this.contactList[0].recId;
             })
             .catch((error) => {
@@ -224,6 +226,7 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
                     this.activeTab = this.contactList[0].fullName;
                     this.contactName = this.contactList[0].fullName;
                     this.phoneNumber = this.contactList[0].phone;
+                    this.phoneNumberrrr = this.contactList[0].phone;;
                     this.recordId = this.contactList[0].recId;
                 })
                 .catch((error) => {
@@ -358,7 +361,7 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
         this.activeTab = event.target.getAttribute('value');
         this.loadMessages(event.target.getAttribute('phone'));
         if (event.target.getAttribute('phone') != undefined) {
-            this.phoneNumber = event.target.getAttribute('phone');
+            this.phoneNumberrrr = event.target.getAttribute('phone');
         }
         this.recordId = event.target.getAttribute('contactid');
     }
@@ -367,17 +370,21 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
         this.contactName = event.currentTarget.dataset.value;
         this.activeTab = event.currentTarget.dataset.value;
         this.loadMessages(event.currentTarget.dataset.phone);
-        this.phoneNumber = event.currentTarget.dataset.phone;
+        this.phoneNumberrrr = event.currentTarget.dataset.phone;
     }
    
     handleSendTemplate() {
         this.sendTemplate = true;
-        this.recPhoneNumber = this.phoneNumber;
+        this.recPhoneNumber = this.phoneNumberrrr;
         this.recContactName = this.contactName;
     }
     handleChildEvent(event) {
+        this.phoneNumber = this.phoneNumberrrr;
         const dataFromChild = event.detail.data;
         this.sendTemplate = dataFromChild;
+        setTimeout(() => {
+            refreshApex(this.updateMessages);
+        }, 2000);
     }
     cancelChild() {
         this.sendTemplate = false;
@@ -463,12 +470,12 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
     }
     /*-----------------------------renderedCallback styles-----------------------------*/
     renderedCallback() {
-        Promise.all([loadStyle(this, UtilityBarStyling)]);
+       // Promise.all([loadStyle(this, UtilityBarStyling)]);
 
         let heightt = window.innerHeight;
         const ULelement = this.template.querySelector('.slds-vertical-tabs__nav');
         if (ULelement) {
-            ULelement.style.height = heightt - 218 + 'px';
+            ULelement.style.height = heightt - 226 + 'px';
         }
         const frameelement = this.template.querySelector('.frame');
         if (frameelement) {
@@ -483,6 +490,7 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
    
     /*-----------------------------handleRefresh (refresh messages)-----------------------------*/
     handleRefresh() {
+        this.phoneNumber = this.phoneNumberrrr;
         console.log('Refresh');
         refreshApex(this.updateMessages);
         refreshApex(self.wiredActivities);
@@ -552,8 +560,9 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
     handleClick(event) {
         let ta = this.template.querySelector(`[data-id="maininput"]`);
         this.message = ta.value;
+        this.phoneNumber = this.phoneNumberrrr;
         this.buttonClicked = true;
-        sendMessage({ mobNumber: this.phoneNumber, textMessage: this.message })
+        sendMessage({ mobNumber: this.phoneNumberrrr, textMessage: this.message })
             .then(result => {
                 this.message = '';
                 ta.value = '';

@@ -2,25 +2,26 @@
     <article class="slds-card container" part="card">
         <div class="slds-card__header slds-grid" style="margin-bottom: -20px;"></div>
         <div class="slds-card__body">
-            <lightning-layout multiple-rows="true">
-                <lightning-layout-item size="2">
+            <lightning-layout multiple-rows="true" class="slds-var-p-bottom_small">
+                <lightning-layout-item size="3">
                     <div style="padding-left: 5%;">
                         <div onkeyup={handleKeyUp}>
                             <lightning-input
                                 name="enter-search"
-                                label="Search by Name"
+                                label=""
+                                placeholder="Seach chat"
                                 type="search"
                             ></lightning-input>
                         </div>
                     </div> 
                 </lightning-layout-item>
-                <lightning-layout-item size="4" >
-                    <div style="padding-left: 4%;margin-top:10px;">
+                <lightning-layout-item size="3" >
+                    <div style="padding-left: 4%;margin-top:16px;">
                         <img src={whatAppBlankProfile} alt="Profile" style="height: 35px; width: 35px;border-radius: 50%;"/>&nbsp;&nbsp;<span class="fontSize"><b>{contactName}</b></span>
                     </div>
                 </lightning-layout-item>
                 <lightning-layout-item size="6">
-                    <div style="margin-top:10px;">
+                    <div style="margin-top:11px;">
                         <img src={WhatsAppIcon} alt={label.WhatsApp} style="height: 40px; width: 40px;border-radius: 50%;margin-left:22px;"/><span class="fontSize"><b>{label.WhatsApp}</b></span>
                     </div>
                 </lightning-layout-item>
