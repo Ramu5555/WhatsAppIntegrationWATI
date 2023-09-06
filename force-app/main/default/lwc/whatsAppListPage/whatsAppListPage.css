@@ -668,7 +668,7 @@ body {
     
 }
 .fontsize {
-    font-size: 10px;
+    font-size: 118%;
     
 }
 .truncate {
@@ -708,7 +708,7 @@ body {
    }
    .slds-vertical-tabs__nav {
     /* max-height: 560px; */
-    width:16%;
+    width:25%;
     overflow-y: scroll;
    }
    /* .container {

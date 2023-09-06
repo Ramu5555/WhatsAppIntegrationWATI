@@ -43,7 +43,7 @@
                     <div class="slds-vertical-tabs__content slds-show" id="slds-vertical-tabs-0" role="tabpanel" aria-labelledby="slds-vertical-tabs-0__nav">
                         <div class="frame">
                             <div class="content">
-                                <div class="messages" onscroll={handleNotification}>
+                                <div class="messages" onscroll={handleNotification} style={WhatsAppMessageBackground}>
                                     <template for:each={listofMessages} for:item="items">
                                         <ul key={items}>
                                             <template if:true={items.messageStatus}>

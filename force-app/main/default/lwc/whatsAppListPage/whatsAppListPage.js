@@ -12,6 +12,7 @@ import deleteQuickResponse from '@salesforce/apex/QuickResponseController.delete
 import { NavigationMixin } from 'lightning/navigation'
 import { loadStyle } from 'lightning/platformResourceLoader';
 import UtilityBarStyling from '@salesforce/resourceUrl/UtilityBarStyling';
+import WhatsAppMessageBackground from '@salesforce/resourceUrl/WhatsAppMessageBackground';
 import getFileVersions from "@salesforce/apex/WhatsAppController.getVersionFiles";
 import refreshMessagesListPage from "@salesforce/apex/WhatsAppController.refreshMessagesListPage";
 import getContactList from '@salesforce/apex/WhatsAppController.getContactList';
@@ -98,6 +99,7 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
     @track LeadIconTitle;
     @track sendTemplate = false;
     @track recPhoneNumber;
+    imageUrl=WhatsAppMessageBackground;
     @track recContactName;
     @track filterValue = 'All Chats';
 
@@ -122,6 +124,11 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
         Search,
         WhatsApp
     };
+
+    /*-----------------------------WhatsApp Messages Background-----------------------------------*/
+    get WhatsAppMessageBackground(){
+        return `height:654px;background-image:url("${this.imageUrl}")`;
+    }
 
     /*-------------------------connectedCallback (get Contact List)-------------------------------*/
     connectedCallback() {
