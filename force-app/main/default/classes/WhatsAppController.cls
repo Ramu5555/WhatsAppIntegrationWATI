@@ -2,8 +2,6 @@ public class WhatsAppController {
     
     @TestVisible private static DhruvsoftWATI__API_Configurations__mdt getAPIConfigs(){
         DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = [SELECT MasterLabel, DhruvsoftWATI__Object_Name__c,DhruvsoftWATI__Phone_Field__c,DhruvsoftWATI__API_Key__c,QualifiedApiName, DhruvsoftWATI__End_Point_URL__c  FROM DhruvsoftWATI__API_Configurations__mdt WHERE MasterLabel='WATI API Config'];
-        system.debug('WATIKEY----->'+watiAPIConfig.DhruvsoftWATI__API_Key__c);
-        system.debug('endPoint ----->'+watiAPIConfig.DhruvsoftWATI__End_Point_URL__c);
         return watiAPIConfig;
     }
     /*=======================================Template Save in Custom Metadata==========================================*/
@@ -18,23 +16,18 @@ public class WhatsAppController {
             request.setHeader('Authorization', 'Bearer ' +watiAPIConfig.API_Key__c);
             request.setMethod('GET');
             HttpResponse response = http.send(request);
-            system.debug('getTemplatesResponse-------->'+response.getStatusCode());
             if(response.getStatusCode() == 200){
-                
                 ResponseWrapper responseWrapper = (ResponseWrapper)JSON.deserialize(response.getBody(), ResponseWrapper.class);
-                System.debug('result--------->'+responseWrapper.result);
                 if(responseWrapper.result == 'success'){
                     SuccessWrapper successWrap = (SuccessWrapper)JSON.deserialize(response.getBody(), SuccessWrapper.class);
                     for(MessageTemplates temp : successWrap.messageTemplates){
                         if(temp.status == 'APPROVED'){
                             CustomParams cusp = new CustomParams();
                             if(temp.customParams != null && !temp.customParams.isEmpty()){
-                                System.debug('elementName: '+temp.elementName+' Params'+temp.customParams);
                                 for(CustomParams cuspa : temp.customParams){
                                     CustomMetadataUtils.createTemplateMetaData(temp.elementName,cuspa.paramName,temp.bodyOriginal);
                                 }
                             }else{
-                                System.debug('elementName: '+temp.elementName+' Params'+temp.customParams);
                                 CustomMetadataUtils.createTemplateMetaData(temp.elementName,'',temp.bodyOriginal);
                             }
                         }
@@ -63,14 +56,12 @@ public class WhatsAppController {
                 String tempName = tempParamMD.MasterLabel.substring(0, lastSpaceIndex);
                 tempMap.put(tempName,tempParamMD.Template_Body__c);
             }
-            System.debug('tempMap: '+tempMap);
             for(String tempName : tempMap.keySet()){
                 TemplatesWrapper tempWrap = new TemplatesWrapper(); 
                 tempWrap.templateName = tempName;
                 tempWrap.templatebody = tempMap.get(tempName);
                 watiTemplatesList.add(tempWrap);
             }
-            System.debug('watiTemplatesList: '+watiTemplatesList);
         }catch(exception e){
             isSuccess = false;
             failureWrap = new FailureWrapper();
@@ -92,12 +83,9 @@ public class WhatsAppController {
         FailureWrapper failureWrap = new FailureWrapper();
         try{
             DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
-            system.debug('recordId------->'+recordId);
             string query = 'SELECT ID,Name,'+watiAPIConfig.Phone_Field__c+' FROM '+watiAPIConfig.Object_Name__c+' WHERE Id=:recordId';
             sObject recordData = database.query(query);
             string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
-            system.debug('mobNumber------->'+mobNumber);
-            system.debug('SnextPageLink------->'+nextPageLink);
             
             Http http = new Http();
             HttpRequest request = new HttpRequest();
@@ -111,19 +99,14 @@ public class WhatsAppController {
             request.setHeader('Authorization', 'Bearer '+watiAPIConfig.API_Key__c);
             request.setMethod('GET');
             HttpResponse response = http.send(request);
-            
-            system.debug('getMessagesResponse-------->'+response.getStatusCode());
-            system.debug('getMessagesResponse-------->'+response.getStatus());
+          
             if(response.getStatusCode() == 200){
                 isSuccess = true;
                 ResponseWrapper responseWrapper = (ResponseWrapper)JSON.deserialize(response.getBody(), ResponseWrapper.class);
-                system.debug('getMessagesresult--------->'+responseWrapper.result);
                 if(responseWrapper.result == 'success'){
                     SuccessWrapper successWrap = (SuccessWrapper)JSON.deserialize(response.getBody(), SuccessWrapper.class);
                     waitMainWrapperData.prevPageLink = successWrap.link.prevPage;
                     waitMainWrapperData.nextPageLink = successWrap.link.nextPage;
-                    system.debug('prevpage--------->'+successWrap.link.prevPage);
-                    system.debug('nextpage--------->'+successWrap.link.nextPage);
                     Messages allMessages = successWrap.messages;
                     List<fileWrapper> fileWrapList = new List<fileWrapper>();
                     for(Items textMess : allMessages.items){
@@ -133,7 +116,6 @@ public class WhatsAppController {
                                 Blob fileBlob = EncodingUtil.base64Decode(fileBody);
                                 String dataM = textMess.data;
                                 String fileName = dataM.substringAfterLast('/');
-                                System.debug('File Name: '+fileName);
                                 fileWrapper fileWrap = new fileWrapper();
                                 fileWrap.fileName = fileName;
                                 fileWrap.fileBlob = fileBlob;
@@ -142,9 +124,7 @@ public class WhatsAppController {
                             }
                         }
                     }
-                    System.debug('fileWrapList: '+fileWrapList);
                     Map<String,String> fileIdList = insertFiles(fileWrapList,recordId);
-                    System.debug('fileIdList: '+fileIdList);
                     for(Items textMessage : allMessages.items){
                         MessageWrapper messWrap = new MessageWrapper();
                         if(textMessage.eventType == 'message'){
@@ -156,16 +136,12 @@ public class WhatsAppController {
                                 if(textMessage.type == 'document'){
                                     messWrap.Doc = true;
                                     messWrap.fileName = fileName;
-                                    System.debug('messWrap.fileName: '+messWrap.fileName);
                                     messWrap.textMessage = fileIdList.get(fileName);
-                                    System.debug('messWrap.fileName: '+messWrap.textMessage);
                                 }
                                 else if(textMessage.type == 'image' || textMessage.type == 'sticker'){
                                     messWrap.img = true;
                                     messWrap.fileName = fileName;
-                                    System.debug('messWrap.fileName: '+messWrap.fileName);
                                     messWrap.textMessage = fileIdList.get(fileName); 
-                                    System.debug('messWrap.fileName: '+messWrap.textMessage);
                                 }
                             }else{
                                 messWrap.textMessage = textMessage.text;
@@ -177,7 +153,6 @@ public class WhatsAppController {
                         }
                         messWrap.createdDate = textMessage.created;
                         if(String.isNotBlank(messWrap.textMessage)){
-                            system.debug('messWrap==='+messWrap);
                             watiMessagesList.add(messWrap); 
                         }
                     }
@@ -185,13 +160,11 @@ public class WhatsAppController {
                     isSuccess = false;
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
-                    system.debug('failureWrap----->'+failureWrap);
                 }
             }else{
                 
             }
         }catch(exception e){
-            system.debug('getMessages--->exception--->'+e.getMessage()+'LineNo: '+e.getLineNumber());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -200,7 +173,6 @@ public class WhatsAppController {
         waitMainWrapperData.isSuccess = isSuccess;
         waitMainWrapperData.watiMessagesList = watiMessagesList;
         waitMainWrapperData.errorDetails = failureWrap;
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
         return waitMainWrapperData;
     }
     
@@ -227,11 +199,9 @@ public class WhatsAppController {
     /*=======================================Insert Files==========================================*/    
     
     @TestVisible private static Map<String,String> insertFiles(List<fileWrapper> fileList, String recordId){
-        System.debug('fileList: '+fileList);
         Map<String,Id> fileMap = new Map<String,Id>();
         Map<String,String> fileIdMap = new Map<String,String>();
         list<ContentDocumentLink> docLinksList = [SELECT Id, ContentDocument.Title,ContentDocumentId, LinkedEntityId  FROM ContentDocumentLink where LinkedEntityId =: recordId];
-        System.debug('docLinksList: '+docLinksList);
         for(ContentDocumentLink cdl : docLinksList){
             fileMap.put(cdl.ContentDocument.Title,cdl.ContentDocumentId);
         }
@@ -256,7 +226,7 @@ public class WhatsAppController {
             }
         }
         if( !Test.isRunningTest() ){
-        insert cvList;
+            insert cvList;
         }
         Set<Id> fileIds = new Set<Id>();
         for(ContentVersion cv : cvList){
@@ -274,7 +244,7 @@ public class WhatsAppController {
             cdList.add(contentDocumentLink);
         }
         if( !Test.isRunningTest() ){
-        insert cdList;
+            insert cdList;
         }
         
         list<ContentDocumentLink> docLinksList1 = [SELECT Id, ContentDocument.Title,ContentDocumentId, LinkedEntityId  FROM ContentDocumentLink where LinkedEntityId =: recordId];
@@ -282,7 +252,6 @@ public class WhatsAppController {
         for(ContentDocumentLink cd : docLinksList1){
             fileIdMap.put(cd.ContentDocument.Title, cd.ContentDocumentId);    
         }
-        System.debug('fileIdMap: '+fileIdMap);
         return fileIdMap;
     }
     
@@ -295,12 +264,9 @@ public class WhatsAppController {
         FailureWrapper failureWrap = new FailureWrapper();
         try{
             DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
-            system.debug('recordId------->'+recordId);
             string query = 'SELECT ID,Name,'+watiAPIConfig.Phone_Field__c+' FROM '+watiAPIConfig.Object_Name__c+' WHERE Id=:recordId';
             sObject recordData = database.query(query);
             string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
-            system.debug('mobNumber------->'+mobNumber);
-            system.debug('SnextPageLink------->'+nextPageLink);
             
             Http http = new Http();
             HttpRequest request = new HttpRequest();
@@ -315,18 +281,13 @@ public class WhatsAppController {
             request.setMethod('GET');
             HttpResponse response = http.send(request);
             
-            system.debug('getMessagesResponse-------->'+response.getStatusCode());
-            system.debug('getMessagesResponse-------->'+response.getStatus());
             if(response.getStatusCode() == 200){
                 isSuccess = true;
                 ResponseWrapper responseWrapper = (ResponseWrapper)JSON.deserialize(response.getBody(), ResponseWrapper.class);
-                system.debug('getMessagesresult--------->'+responseWrapper.result);
                 if(responseWrapper.result == 'success'){
                     SuccessWrapper successWrap = (SuccessWrapper)JSON.deserialize(response.getBody(), SuccessWrapper.class);
                     waitMainWrapperData.prevPageLink = successWrap.link.prevPage;
                     waitMainWrapperData.nextPageLink = successWrap.link.nextPage;
-                    system.debug('prevpage--------->'+successWrap.link.prevPage);
-                    system.debug('nextpage--------->'+successWrap.link.nextPage);
                     Messages allMessages = successWrap.messages;
                     List<fileWrapper> fileWrapList = new List<fileWrapper>();
                     for(Items textMess : allMessages.items){
@@ -336,7 +297,6 @@ public class WhatsAppController {
                                 Blob fileBlob = EncodingUtil.base64Decode(fileBody);
                                 String dataM = textMess.data;
                                 String fileName = dataM.substringAfterLast('/');
-                                System.debug('File Name: '+fileName);
                                 fileWrapper fileWrap = new fileWrapper();
                                 fileWrap.fileName = fileName;
                                 fileWrap.fileBlob = fileBlob;
@@ -345,9 +305,7 @@ public class WhatsAppController {
                             }
                         }
                     }
-                    System.debug('fileWrapList: '+fileWrapList);
                     Map<String,String> fileIdList = insertFiles(fileWrapList,recordId);
-                    System.debug('fileIdList: '+fileIdList);
                     for(Items textMessage : allMessages.items){
                         MessageWrapper messWrap = new MessageWrapper();
                         if(textMessage.eventType == 'message'){
@@ -359,16 +317,12 @@ public class WhatsAppController {
                                 if(textMessage.type == 'document'){
                                     messWrap.Doc = true;
                                     messWrap.fileName = fileName;
-                                    System.debug('messWrap.fileName: '+messWrap.fileName);
                                     messWrap.textMessage = fileIdList.get(fileName);
-                                    System.debug('messWrap.fileName: '+messWrap.textMessage);
                                 }
                                 else if(textMessage.type == 'image'){
                                     messWrap.img = true;
                                     messWrap.fileName = fileName;
-                                    System.debug('messWrap.fileName: '+messWrap.fileName);
                                     messWrap.textMessage = fileIdList.get(fileName); 
-                                    System.debug('messWrap.fileName: '+messWrap.textMessage);
                                 }
                             }else{
                                 messWrap.textMessage = textMessage.text;
@@ -380,7 +334,6 @@ public class WhatsAppController {
                         }
                         messWrap.createdDate = textMessage.created;
                         if(String.isNotBlank(messWrap.textMessage)){
-                            system.debug('messWrap==='+messWrap);
                             watiMessagesList.add(messWrap); 
                         }
                     }
@@ -388,13 +341,11 @@ public class WhatsAppController {
                     isSuccess = false;
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
-                    system.debug('failureWrap----->'+failureWrap);
                 }
             }else{
                 
             }
         }catch(exception e){
-            system.debug('getMessages--->exception--->'+e.getMessage()+'LineNo: '+e.getLineNumber());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -403,7 +354,6 @@ public class WhatsAppController {
         waitMainWrapperData.isSuccess = isSuccess;
         waitMainWrapperData.watiMessagesList = watiMessagesList;
         waitMainWrapperData.errorDetails = failureWrap;
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
         return waitMainWrapperData;
     }
     
@@ -415,14 +365,11 @@ public class WhatsAppController {
         String invalidNumber;
         FailureWrapper failureWrap = new FailureWrapper();
         try{
-            system.debug('recordId-------->'+recordId);
-            system.debug('templateName------------------>'+templateName);
             
             DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
             string query = 'SELECT ID,Name,'+watiAPIConfig.Phone_Field__c+' FROM '+watiAPIConfig.Object_Name__c+' WHERE Id=:recordId';
             sObject recordData = database.query(query);
             string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
-            system.debug('mobNumber:: '+mobNumber);
             
             Pattern matchPattern1 = Pattern.compile('^[6-9]\\d{9}$'); //Format: 8885593331
             Pattern matchPattern2 = Pattern.compile('\\(\\d{3}\\)\\s\\d{3}-\\d{4}'); //Format: (888) 559-3331
@@ -446,12 +393,10 @@ public class WhatsAppController {
             }
             else if(mobNumber == null || mobNumber == '')
             {
-                system.debug('Null');
                 invalidNumber = 'Invalid Mobile Number Please check Mobile Number';
             }
             else
             {
-                system.debug('Invalid');
                 invalidNumber = 'Invalid Mobile Number Please check Mobile Number';
             }
             
@@ -459,23 +404,16 @@ public class WhatsAppController {
             Set<String> SobjectFields = Schema.getGlobalDescribe().get(watiAPIConfig.Object_Name__c).getDescribe().fields.getMap().keySet();    
             List<String> fieldsInList = new List<String>(SobjectFields);
             String contQuery = 'SELECT ' + String.join(fieldsInList, ',') + ' FROM '+watiAPIConfig.Object_Name__c +' WHERE Id=:recordId';
-            System.debug('conQuery '+contQuery);
             String conQuery = String.valueOf(contQuery);
-            System.debug('conQuery '+conQuery);
             sObject recordData2 = database.query(conQuery);
             List<Template_Param_Configuration__mdt> tempParamMDTList = [SELECT MasterLabel,SF_Field_API_Name__c,WA_Param_Name__c,Template_Body__c FROM Template_Param_Configuration__mdt WHERE DhruvsoftWATI__Template_Name__c =: templateName  LIMIT 9999];
-            System.debug('Metadata: '+tempParamMDTList);
             List<Parameters> parms = New List<Parameters>();
             for(Template_Param_Configuration__mdt tempParamMDT : tempParamMDTList){
                 String fieldAPIName = tempParamMDT.SF_Field_API_Name__c;
-                System.debug('fieldAPIName: '+fieldAPIName);
                 Boolean containsField = conQuery.contains(fieldAPIName.toLowerCase());
                 if (containsField) {
-                    System.debug('The query contains the field: ' + fieldAPIName);
                     paramValue = string.valueOf(recordData2.get(fieldAPIName));
-                    system.debug('name: '+paramValue);
                 } else {
-                    System.debug('The query does not contain the field: ' + fieldAPIName);
                 }
                 if(paramValue != null){
                     parms.add(new Parameters(tempParamMDT.WA_Param_Name__c,paramValue));
@@ -488,10 +426,7 @@ public class WhatsAppController {
             sendTempWrap.template_name = templateName;
             sendTempWrap.broadcast_name = templateName;
             
-            system.debug('parms--------------------->'+JSON.serialize(parms));
-            sendTempWrap.parameters = parms;
-            system.debug('sendparams----------------->'+sendTempWrap.parameters);
-            
+            sendTempWrap.parameters = parms;            
             
             Http http = new Http();
             HttpRequest request = new HttpRequest();
@@ -501,16 +436,11 @@ public class WhatsAppController {
             request.setHeader('Content-Type', 'application/json-patch+json');
             request.setTimeout(2000);
             request.setBody(JSON.serialize(sendTempWrap));
-            system.debug('serializedData--------------->'+JSON.serialize(sendTempWrap));
             HttpResponse response = http.send(request);
-            system.debug('StatusCode----------->'+response.getStatusCode());
-            system.debug('Status--------------->'+response.getStatus());
             
             if(response.getStatusCode() == 200){
-                system.debug('ResponseBody------------>'+JSON.deserializeUntyped(response.getBody()));
                 object results = (object)JSON.deserializeUntyped(response.getBody());
                 Map<String,Object> tempMap = (Map<String,Object>)results;
-                system.debug('id '+tempMap.get('result'));
                 Boolean resultResp = (Boolean)tempMap.get('result');
                 if(resultResp == true){
                     isSuccess = true;
@@ -518,14 +448,12 @@ public class WhatsAppController {
                     isSuccess = false;
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
-                    system.debug('failureWrap----->'+failureWrap);
                 }
             }else{
                 
             }
             
         }catch(exception e){
-            system.debug('sendTemplate--->exception--->'+e.getMessage()+'Line Number '+e.getLineNumber());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -534,7 +462,6 @@ public class WhatsAppController {
         waitMainWrapperData.isSuccess = isSuccess;
         waitMainWrapperData.errorDetails = failureWrap;
         waitMainWrapperData.invalidMobileNumber = invalidNumber;
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
         return waitMainWrapperData;
     }
     
@@ -550,9 +477,7 @@ public class WhatsAppController {
         List<String> invalidNumbers = new List<String>();
         try{
             DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
-            
-            system.debug('recordsIdSet-------------------->'+recordsIdSet);
-            
+                        
             List<string> idsList = new List<string>();
             set<Id> ids = new set<Id>();
             for(string recordId:recordsIdSet){
@@ -563,7 +488,6 @@ public class WhatsAppController {
             }
             string query = 'SELECT ID,Name,'+watiAPIConfig.Phone_Field__c+' FROM '+watiAPIConfig.Object_Name__c+' WHERE Id IN:ids';
             List<sObject> listOfRecords = database.query(query);
-            system.debug('listOfRecords----------->'+listOfRecords);
             
             Pattern matchPattern1 = Pattern.compile('^[6-9]\\d{9}$'); //Format: 8885593331
             Pattern matchPattern2 = Pattern.compile('\\(\\d{3}\\)\\s\\d{3}-\\d{4}'); //Format: (888) 559-3331
@@ -581,13 +505,9 @@ public class WhatsAppController {
                     
                     validNumbers.put(String.valueOf(record.get(watiAPIConfig.Phone_Field__c)),String.valueOf(record.get('Id')));
                 }else{
-                    system.debug('notValidNumber---------->'+String.valueOf(record.get(watiAPIConfig.Phone_Field__c)));
                     invalidMembers.put(String.valueOf(record.get(watiAPIConfig.Phone_Field__c)),String.valueOf(record.get('Name')));
                 } 
             }
-            system.debug('ValidPhoneNumbersSize--------------------->'+validNumbers.size());
-            system.debug('ValidPhoneNumbers------------------------->'+validNumbers);
-            system.debug('InvalidPhoneNumbers------------------------->'+InvalidMembers);
             
             SendTemplateWrapper sendTempWrap = new SendTemplateWrapper();
             List<Receivers> listofMobileNumbers = New List<Receivers>();
@@ -598,7 +518,6 @@ public class WhatsAppController {
                 receiversMap = validNumbers;
             }
             
-            system.debug('receiversMap----------->'+receiversMap);
             List<String> MobileNumberList = new List<String>();
             set<string> recIdSet = new set<string>();
             for(string num:receiversMap.keyset()){
@@ -610,7 +529,7 @@ public class WhatsAppController {
             Set<String> SobjectFields = Schema.getGlobalDescribe().get(watiAPIConfig.Object_Name__c).getDescribe().fields.getMap().keySet();    
             List<String> fieldsInList = new List<String>(SobjectFields);
             String contQuery = 'SELECT ' + String.join(fieldsInList, ',') + ' FROM '+watiAPIConfig.Object_Name__c +' WHERE Id IN: recIdSet';
-            System.debug('conQuery '+contQuery);
+
             String conQuery = string.valueOf(contQuery);
             recordsData = database.query(conQuery);
             for(sObject record:recordsData){
@@ -630,11 +549,9 @@ public class WhatsAppController {
                     String fieldAPIName = tempParamMDT.SF_Field_API_Name__c;
                     Boolean containsField = conQuery.contains(fieldAPIName.toLowerCase());
                     if (containsField) {
-                        System.debug('The query contains the field: ' + fieldAPIName);
                         paramValue = string.valueOf(recordData2.get(fieldAPIName));
-                        system.debug('name: '+paramValue);
                     } else {
-                        System.debug('The query does not contain the field: ' + fieldAPIName);
+
                     }
                     if(paramValue != null){
                         parms.add(new CustomParams(tempParamMDT.WA_Param_Name__c,paramValue));
@@ -646,13 +563,10 @@ public class WhatsAppController {
                 mobileNoList.customParams = parms;
                 listofMobileNumbers.add(mobileNoList);
             }
-            
-            system.debug('listofMobileNumbers---------->'+JSON.serialize(listofMobileNumbers));
-            
+                        
             sendTempWrap.template_name = templateName;
             sendTempWrap.broadcast_name = templateName;
             sendTempWrap.receivers = listofMobileNumbers;
-            system.debug('sendTempWrap------------------->'+JSON.serialize(sendTempWrap));
             
             Http http = new Http();
             HttpRequest request = new HttpRequest();
@@ -664,11 +578,7 @@ public class WhatsAppController {
             request.setBody(JSON.serialize(sendTempWrap));
             
             HttpResponse response = http.send(request);
-            System.debug('statusCode------->'+response.getStatusCode());
-            System.debug('status-------->'+response.getStatus());
             if(response.getStatusCode() == 200){
-                system.debug('responseBody-------->'+response.getBody());
-                system.debug('desResponseBody----->'+JSON.deserializeUntyped(response.getBody()));
                 ResultWrapper resWrap = new ResultWrapper();
                 object results = (object)JSON.deserializeUntyped(response.getBody());
                 Map<String,Object> tempMap = (Map<String,Object>)results;
@@ -679,13 +589,11 @@ public class WhatsAppController {
                     isSuccess = false;
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
-                    system.debug('failureWrap----->'+failureWrap);
                 }
             }else{
                 
             }
         }catch(exception e){
-            system.debug('sendTemplatesBulk--->exception--->'+e.getMessage());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -696,7 +604,6 @@ public class WhatsAppController {
         waitMainWrapperData.invalidMemberMap = InvalidMembers;
         waitMainWrapperData.invalidWhatsappNumbers = InvalidMembers.keyset();
         waitMainWrapperData.validMemCount = validNumbers.size();
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
         return waitMainWrapperData;
     }
     
@@ -708,14 +615,11 @@ public class WhatsAppController {
         boolean isSuccess = false;
         FailureWrapper failureWrap = new FailureWrapper();
         try{
-            system.debug('recordId------->'+recordId);
-            system.debug('textMessage--------->'+textMessage);
             
             DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
             string query = 'SELECT ID,Name,'+watiAPIConfig.Phone_Field__c+' FROM '+watiAPIConfig.Object_Name__c+' WHERE Id=:recordId';
             sObject recordData = database.query(query);
             string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
-            system.debug('mobNumber------->'+mobNumber);
             
             string encodedString  = EncodingUtil.urlEncode(textMessage, 'UTF-8');
             
@@ -728,8 +632,6 @@ public class WhatsAppController {
             request.setHeader('Content-Type', 'application/json-patch+json');
             
             HttpResponse response = http.send(request);
-            system.debug('statusCode---------->'+response.getStatusCode());
-            system.debug('status---------->'+response.getStatus());
             if(response.getStatusCode() == 200){
                 SendMessageWrapper sendMsgWrap = (SendMessageWrapper)JSON.deserialize(response.getBody(), SendMessageWrapper.class);
                 if(sendMsgWrap.ok == true && sendMsgWrap.result == 'success'){
@@ -739,8 +641,6 @@ public class WhatsAppController {
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
                 }
-                system.debug('>>>>>>>'+JSON.deserializeUntyped(response.getBody()));
-                system.debug('>>>>>>>'+response.getStatus());
             }else{
                 isSuccess = false;
                 failureWrap = new FailureWrapper();
@@ -748,7 +648,6 @@ public class WhatsAppController {
             }
             
         }catch(exception e){
-            system.debug('sendSingleMessage--->exception--->'+e.getMessage());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -766,7 +665,6 @@ public class WhatsAppController {
         { 
             waitMainWrapperData.errorMessage = 'Chat has been Expired';
         }
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
         return waitMainWrapperData;
     }
     
@@ -788,7 +686,6 @@ public class WhatsAppController {
             }
             sObject recordData = database.query(query);
             string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
-            system.debug('mobNumber------->'+mobNumber);
             
             ContentDocumentLink cdl = [SELECT LinkedEntityId, ContentDocument.CreatedDate, ContentDocument.Title, ContentDocument.Id, ContentDocument.ContentSize, ContentDocument.FileType FROM ContentDocumentLink  
                                        WHERE linkedentityid=:recordId order by contentdocument.createddate DESC LIMIT 1];
@@ -798,7 +695,6 @@ public class WhatsAppController {
                 map<string,string> contentTypeMap = new map<string,string>{'PDF'=>'application/pdf','PNG'=>'image/png','JPG'=>'image/jpeg','JPEG'=>'image/jpeg'};
                     string file_name = cdl.ContentDocument.Title;
             string contentType = contentTypeMap.get(cdl.ContentDocument.FileType);
-            System.debug('contentType: '+contentType);
             ContentVersion cv  = [SELECT Id,ContentSize,VersionData,PathOnClient ,ContentDocumentId from ContentVersion where contentdocumentId IN:cdIdSet LIMIT 1];
             blob file_body;
             if(cv.ContentSize < 1500000){
@@ -817,7 +713,6 @@ public class WhatsAppController {
                 headerEncoded = EncodingUtil.base64Encode(Blob.valueOf(header+'\r\n\r\n'));
             }
             String bodyEncoded = EncodingUtil.base64Encode(file_body);
-            System.debug('Heap Size: '+Limits.getHeapSize());
             String footerEncoded = EncodingUtil.base64Encode(Blob.valueOf(footer));
             Blob bodyBlob = null;
             String last4Bytes = bodyEncoded.substring(bodyEncoded.length()-4,bodyEncoded.length());
@@ -842,18 +737,12 @@ public class WhatsAppController {
             Http http = new Http();
             HttpResponse response = http.send(req);
             
-            System.debug('statusCode----->'+response.getStatusCode());
-            System.debug('respBody------->'+JSON.deserializeUntyped(response.getBody()));
-            System.debug('status------>'+response.getStatus());
             
             if(response.getStatusCode() == 200){
                 WAMainWrapper responseWrapper = (WAMainWrapper)JSON.deserialize(response.getBody(), WAMainWrapper.class);
-                System.debug('result--------->'+responseWrapper.result);
                 if(responseWrapper.result == true){
                     WAttachmentWrapper successWrapper = (WAttachmentWrapper)JSON.deserialize(response.getBody(), WAttachmentWrapper.class);
-                    System.debug('whatsappMessageId------>'+successWrapper.message.whatsappMessageId);
                     if(string.isNotBlank(successWrapper.message.whatsappMessageId)){
-                        System.debug('Success630: '+successWrapper.message.whatsappMessageId);
                         resWrap.isSuccess = true;
                         resWrap.message = 'File Sent Successfully';
                     }
@@ -870,7 +759,6 @@ public class WhatsAppController {
             
             
         }catch(exception e){
-            system.debug('exception------>'+e.getMessage()+' Line Number: '+e.getLineNumber());
             resWrap.isSuccess =  false;
             resWrap.message = e.getMessage();
         }
@@ -925,7 +813,6 @@ public class WhatsAppController {
             string query = 'SELECT ID,Name,'+watiAPIConfig.Phone_Field__c+' FROM '+watiAPIConfig.Object_Name__c+' WHERE Id=:recordId';
             sObject recordData = database.query(query);
             string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
-            system.debug('mobNumber:: '+mobNumber);
             
             Pattern matchPattern1 = Pattern.compile('^[6-9]\\d{9}$'); //Format: 8885593331
             Pattern matchPattern2 = Pattern.compile('\\(\\d{3}\\)\\s\\d{3}-\\d{4}'); //Format: (888) 559-3331
@@ -949,12 +836,10 @@ public class WhatsAppController {
             }
             else if(mobNumber == null || mobNumber == '')
             {
-                system.debug('Null');
                 invalidNumber = 'Invalid Mobile Number Please check Mobile Number';
             }
             else
             {
-                system.debug('Invalid');
                 invalidNumber = 'Invalid Mobile Number Please check Mobile Number';
             }
             
@@ -962,9 +847,7 @@ public class WhatsAppController {
             Set<String> SobjectFields = Schema.getGlobalDescribe().get(watiAPIConfig.Object_Name__c).getDescribe().fields.getMap().keySet();    
             List<String> fieldsInList = new List<String>(SobjectFields);
             String contQuery = 'SELECT ' + String.join(fieldsInList, ',') + ' FROM '+watiAPIConfig.Object_Name__c +' WHERE Id=:recordId';
-            System.debug('conQuery '+contQuery);
             String conQuery = String.valueOf(contQuery);
-            System.debug('conQuery '+conQuery);
             sObject recordData2 = database.query(conQuery);
             List<Template_Param_Configuration__mdt> tempParamMDTList = [SELECT MasterLabel,SF_Field_API_Name__c,WA_Param_Name__c,Template_Body__c FROM Template_Param_Configuration__mdt LIMIT 9999];
             
@@ -973,11 +856,9 @@ public class WhatsAppController {
                 String fieldAPIName = tempParamMDT.SF_Field_API_Name__c;
                 Boolean containsField = conQuery.contains(fieldAPIName.toLowerCase());
                 if (containsField) {
-                    System.debug('The query contains the field: ' + fieldAPIName);
                     paramValue = string.valueOf(recordData2.get(fieldAPIName));
-                    system.debug('name: '+paramValue);
                 } else {
-                    System.debug('The query does not contain the field: ' + fieldAPIName);
+
                 }
                 if(paramValue != null){
                     parms.add(new Parameters(tempParamMDT.WA_Param_Name__c,paramValue));
@@ -990,10 +871,7 @@ public class WhatsAppController {
             sendTempWrap.template_name = 'new_chat';
             sendTempWrap.broadcast_name = 'new_chat';
             
-            system.debug('parms--------------------->'+JSON.serialize(parms));
             sendTempWrap.parameters = parms;
-            system.debug('sendparams----------------->'+sendTempWrap.parameters);
-            
             
             Http http = new Http();
             HttpRequest request = new HttpRequest();
@@ -1003,16 +881,11 @@ public class WhatsAppController {
             request.setHeader('Content-Type', 'application/json-patch+json');
             request.setTimeout(2000);
             request.setBody(JSON.serialize(sendTempWrap));
-            system.debug('serializedData--------------->'+JSON.serialize(sendTempWrap));
             HttpResponse response = http.send(request);
-            system.debug('StatusCode----------->'+response.getStatusCode());
-            system.debug('Status--------------->'+response.getStatus());
             
             if(response.getStatusCode() == 200){
-                system.debug('ResponseBody------------>'+JSON.deserializeUntyped(response.getBody()));
                 object results = (object)JSON.deserializeUntyped(response.getBody());
                 Map<String,Object> tempMap = (Map<String,Object>)results;
-                system.debug('id '+tempMap.get('result'));
                 Boolean resultResp = (Boolean)tempMap.get('result');
                 if(resultResp == true){
                     isSuccess = true;
@@ -1020,14 +893,12 @@ public class WhatsAppController {
                     isSuccess = false;
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
-                    system.debug('failureWrap----->'+failureWrap);
                 }
             }else{
                 
             }
             
         }catch(exception e){
-            system.debug('sendTemplate--->exception--->'+e.getMessage()+'Line Number '+e.getLineNumber());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -1036,7 +907,6 @@ public class WhatsAppController {
         waitMainWrapperData.isSuccess = isSuccess;
         waitMainWrapperData.errorDetails = failureWrap;
         waitMainWrapperData.invalidMobileNumber = invalidNumber;
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
     }
     
     /*=======================================Get Contact List==========================================*/
@@ -1051,16 +921,14 @@ public class WhatsAppController {
         Http http = new Http();
         HttpRequest request = new HttpRequest();
         if(searchName==null || searchName==''){
-              request.setEndpoint(watiAPIConfig.End_Point_URL__c+'v1/getContacts');  
-            }
-            else{
-                request.setEndpoint(watiAPIConfig.End_Point_URL__c+'v1/getContacts?name='+encodedString);
-            }
+            request.setEndpoint(watiAPIConfig.End_Point_URL__c+'v1/getContacts');  
+        }
+        else{
+            request.setEndpoint(watiAPIConfig.End_Point_URL__c+'v1/getContacts?name='+encodedString);
+        }
         request.setHeader('Authorization', 'Bearer ' +watiAPIConfig.API_Key__c);
         request.setMethod('GET');
         HttpResponse response = http.send(request);
-        system.debug('getTemplatesResponse-------->'+response.getStatusCode());
-        System.debug('Response:: '+response.getBody());
         if(response.getStatusCode() == 200){
             ContactListWrapper conListWrapper = (ContactListWrapper)JSON.deserialize(response.getBody(), ContactListWrapper.class);
             List<contact_list> contactListWrapper = conListWrapper.contact_list;
@@ -1071,7 +939,6 @@ public class WhatsAppController {
                 conWrap.firstName = con.firstName;
                 conWrap.phone = con.phone;
                 conWrap.lastUpdated = con.lastUpdated;
-                System.debug('Name:: '+con.fullName+' LastUpdated:: '+con.lastUpdated);
                 conWrap.contactMatch = false;
                 conWrap.leadMatch = false;
                 conWrap.newLead = false;
@@ -1079,15 +946,10 @@ public class WhatsAppController {
                 conListWrap.add(conWrap);
             }
             waitMainWrapperData.contact_list = conListWrap;
-            System.debug('contactListWrapper:: '+waitMainWrapperData.contact_list);
-            System.debug('contactListWrapper Size:: '+contactListWrapper.Size());
             Set<String> phoneSet = new Set<String>();
             for(contact_list con : contactListWrapper){
-                System.debug('Phone:: '+con.phone);
                 phoneSet.add(con.phone);
             }
-            System.debug('PhoneSet:: '+phoneSet);
-            System.debug('PhoneSet:: '+phoneSet.Size());
             List<String> conPhoneList = new List<String>();
             Map<String,String> contactMap = new Map<String,String>();
             List<Contact> ContactList = [SELECT Id,Name,Phone FROM Contact WHERE Phone IN : phoneSet];
@@ -1123,7 +985,6 @@ public class WhatsAppController {
             DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
             Contact con = [SELECT Id,Name FROM Contact Where Name=:'WhatsApp Integration Contact' AND Email=:'whatsappintegration@WATI.com'];
             String recordId = con.Id;
-            system.debug('SnextPageLink------->'+nextPageLink);
             
             Http http = new Http();
             HttpRequest request = new HttpRequest();
@@ -1138,19 +999,13 @@ public class WhatsAppController {
             request.setMethod('GET');
             HttpResponse response = http.send(request);
             
-            system.debug('getMessagesResponse-------->'+response.getStatusCode());
-            system.debug('getMessagesResponse-------->'+response.getStatus());
-            System.debug('Response:: '+response.getBody());
             if(response.getStatusCode() == 200){
                 isSuccess = true;
                 ResponseWrapper responseWrapper = (ResponseWrapper)JSON.deserialize(response.getBody(), ResponseWrapper.class);
-                system.debug('getMessagesresult--------->'+responseWrapper.result);
                 if(responseWrapper.result == 'success'){
                     SuccessWrapper successWrap = (SuccessWrapper)JSON.deserialize(response.getBody(), SuccessWrapper.class);
                     waitMainWrapperData.prevPageLink = successWrap.link.prevPage;
                     waitMainWrapperData.nextPageLink = successWrap.link.nextPage;
-                    system.debug('prevpage--------->'+successWrap.link.prevPage);
-                    system.debug('nextpage--------->'+successWrap.link.nextPage);
                     Messages allMessages = successWrap.messages;
                     List<fileWrapper> fileWrapList = new List<fileWrapper>();
                     for(Items textMess : allMessages.items){
@@ -1160,7 +1015,6 @@ public class WhatsAppController {
                                 Blob fileBlob = EncodingUtil.base64Decode(fileBody);
                                 String dataM = textMess.data;
                                 String fileName = dataM.substringAfterLast('/');
-                                System.debug('File Name: '+fileName);
                                 fileWrapper fileWrap = new fileWrapper();
                                 fileWrap.fileName = fileName;
                                 fileWrap.fileBlob = fileBlob;
@@ -1169,9 +1023,7 @@ public class WhatsAppController {
                             }
                         }
                     }
-                    System.debug('fileWrapList: '+fileWrapList);
                     Map<String,String> fileIdList = insertFiles(fileWrapList,recordId);
-                    System.debug('fileIdList: '+fileIdList);
                     for(Items textMessage : allMessages.items){
                         MessageWrapper messWrap = new MessageWrapper();
                         if(textMessage.eventType == 'message'){
@@ -1183,16 +1035,12 @@ public class WhatsAppController {
                                 if(textMessage.type == 'document'){
                                     messWrap.Doc = true;
                                     messWrap.fileName = fileName;
-                                    System.debug('messWrap.fileName: '+messWrap.fileName);
                                     messWrap.textMessage = fileIdList.get(fileName);
-                                    System.debug('messWrap.fileName: '+messWrap.textMessage);
                                 }
                                 else if(textMessage.type == 'image'){
                                     messWrap.img = true;
                                     messWrap.fileName = fileName;
-                                    System.debug('messWrap.fileName: '+messWrap.fileName);
                                     messWrap.textMessage = fileIdList.get(fileName); 
-                                    System.debug('messWrap.fileName: '+messWrap.textMessage);
                                 }
                             }else{
                                 messWrap.textMessage = textMessage.text;
@@ -1204,7 +1052,6 @@ public class WhatsAppController {
                         }
                         messWrap.createdDate = textMessage.created;
                         if(String.isNotBlank(messWrap.textMessage)){
-                            system.debug('messWrap==='+messWrap);
                             watiMessagesList.add(messWrap); 
                         }
                     }
@@ -1212,13 +1059,11 @@ public class WhatsAppController {
                     isSuccess = false;
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
-                    system.debug('failureWrap----->'+failureWrap);
                 }
             }else{
                 
             }
         }catch(exception e){
-            system.debug('getMessages--->exception--->'+e.getMessage()+'LineNo: '+e.getLineNumber());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -1227,7 +1072,6 @@ public class WhatsAppController {
         waitMainWrapperData.isSuccess = isSuccess;
         waitMainWrapperData.watiMessagesList = watiMessagesList;
         waitMainWrapperData.errorDetails = failureWrap;
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
         return waitMainWrapperData;
     }
     
@@ -1238,14 +1082,11 @@ public class WhatsAppController {
         boolean isSuccess = false;
         FailureWrapper failureWrap = new FailureWrapper();
         try{
-            //system.debug('recordId------->'+recordId);
-            system.debug('textMessage--------->'+textMessage);
             
             DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
             /*string query = 'SELECT ID,Name,'+watiAPIConfig.Phone_Field__c+' FROM '+watiAPIConfig.Object_Name__c+' WHERE Id=:recordId';
 sObject recordData = database.query(query);
 string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));*/
-            system.debug('mobNumber------->'+mobNumber);
             
             string encodedString  = EncodingUtil.urlEncode(textMessage, 'UTF-8');
             
@@ -1258,8 +1099,6 @@ string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
             request.setHeader('Content-Type', 'application/json-patch+json');
             
             HttpResponse response = http.send(request);
-            system.debug('statusCode---------->'+response.getStatusCode());
-            system.debug('status---------->'+response.getStatus());
             if(response.getStatusCode() == 200){
                 SendMessageWrapper sendMsgWrap = (SendMessageWrapper)JSON.deserialize(response.getBody(), SendMessageWrapper.class);
                 if(sendMsgWrap.ok == true && sendMsgWrap.result == 'success'){
@@ -1269,8 +1108,6 @@ string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
                 }
-                system.debug('>>>>>>>'+JSON.deserializeUntyped(response.getBody()));
-                system.debug('>>>>>>>'+response.getStatus());
             }else{
                 isSuccess = false;
                 failureWrap = new FailureWrapper();
@@ -1278,7 +1115,6 @@ string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
             }
             
         }catch(exception e){
-            system.debug('sendSingleMessage--->exception--->'+e.getMessage());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -1296,7 +1132,6 @@ string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
         { 
             waitMainWrapperData.errorMessage = 'Chat has been Expired';
         }
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
         return waitMainWrapperData;
     }
     /*=======================================Refresh Mssages==========================================*/
@@ -1308,15 +1143,9 @@ string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
         FailureWrapper failureWrap = new FailureWrapper();
         try{
             DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
-            /* system.debug('recordId------->'+recordId);
-string query = 'SELECT ID,Name,'+watiAPIConfig.Phone_Field__c+' FROM '+watiAPIConfig.Object_Name__c+' WHERE Id=:recordId';
-sObject recordData = database.query(query);
-string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
-system.debug('mobNumber------->'+mobNumber);*/
             
             Contact con = [SELECT Id,Name FROM Contact Where Name=:'WhatsApp Integration Contact' AND Email=:'whatsappintegration@WATI.com'];
             String recordId = con.Id;
-            system.debug('SnextPageLink------->'+nextPageLink);
             
             Http http = new Http();
             HttpRequest request = new HttpRequest();
@@ -1331,18 +1160,13 @@ system.debug('mobNumber------->'+mobNumber);*/
             request.setMethod('GET');
             HttpResponse response = http.send(request);
             
-            system.debug('getMessagesResponse-------->'+response.getStatusCode());
-            system.debug('getMessagesResponse-------->'+response.getStatus());
             if(response.getStatusCode() == 200){
                 isSuccess = true;
                 ResponseWrapper responseWrapper = (ResponseWrapper)JSON.deserialize(response.getBody(), ResponseWrapper.class);
-                system.debug('getMessagesresult--------->'+responseWrapper.result);
                 if(responseWrapper.result == 'success'){
                     SuccessWrapper successWrap = (SuccessWrapper)JSON.deserialize(response.getBody(), SuccessWrapper.class);
                     waitMainWrapperData.prevPageLink = successWrap.link.prevPage;
                     waitMainWrapperData.nextPageLink = successWrap.link.nextPage;
-                    system.debug('prevpage--------->'+successWrap.link.prevPage);
-                    system.debug('nextpage--------->'+successWrap.link.nextPage);
                     Messages allMessages = successWrap.messages;
                     List<fileWrapper> fileWrapList = new List<fileWrapper>();
                     for(Items textMess : allMessages.items){
@@ -1352,7 +1176,6 @@ system.debug('mobNumber------->'+mobNumber);*/
                                 Blob fileBlob = EncodingUtil.base64Decode(fileBody);
                                 String dataM = textMess.data;
                                 String fileName = dataM.substringAfterLast('/');
-                                System.debug('File Name: '+fileName);
                                 fileWrapper fileWrap = new fileWrapper();
                                 fileWrap.fileName = fileName;
                                 fileWrap.fileBlob = fileBlob;
@@ -1361,9 +1184,7 @@ system.debug('mobNumber------->'+mobNumber);*/
                             }
                         }
                     }
-                    System.debug('fileWrapList: '+fileWrapList);
                     Map<String,String> fileIdList = insertFiles(fileWrapList,recordId);
-                    System.debug('fileIdList: '+fileIdList);
                     for(Items textMessage : allMessages.items){
                         MessageWrapper messWrap = new MessageWrapper();
                         if(textMessage.eventType == 'message'){
@@ -1375,16 +1196,12 @@ system.debug('mobNumber------->'+mobNumber);*/
                                 if(textMessage.type == 'document'){
                                     messWrap.Doc = true;
                                     messWrap.fileName = fileName;
-                                    System.debug('messWrap.fileName: '+messWrap.fileName);
                                     messWrap.textMessage = fileIdList.get(fileName);
-                                    System.debug('messWrap.fileName: '+messWrap.textMessage);
                                 }
                                 else if(textMessage.type == 'image'){
                                     messWrap.img = true;
                                     messWrap.fileName = fileName;
-                                    System.debug('messWrap.fileName: '+messWrap.fileName);
                                     messWrap.textMessage = fileIdList.get(fileName); 
-                                    System.debug('messWrap.fileName: '+messWrap.textMessage);
                                 }
                             }else{
                                 messWrap.textMessage = textMessage.text;
@@ -1396,7 +1213,6 @@ system.debug('mobNumber------->'+mobNumber);*/
                         }
                         messWrap.createdDate = textMessage.created;
                         if(String.isNotBlank(messWrap.textMessage)){
-                            system.debug('messWrap==='+messWrap);
                             watiMessagesList.add(messWrap); 
                         }
                     }
@@ -1404,13 +1220,11 @@ system.debug('mobNumber------->'+mobNumber);*/
                     isSuccess = false;
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
-                    system.debug('failureWrap----->'+failureWrap);
                 }
             }else{
                 
             }
         }catch(exception e){
-            system.debug('getMessages--->exception--->'+e.getMessage()+'LineNo: '+e.getLineNumber());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -1419,7 +1233,6 @@ system.debug('mobNumber------->'+mobNumber);*/
         waitMainWrapperData.isSuccess = isSuccess;
         waitMainWrapperData.watiMessagesList = watiMessagesList;
         waitMainWrapperData.errorDetails = failureWrap;
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
         return waitMainWrapperData;
     }
     
@@ -1431,9 +1244,6 @@ system.debug('mobNumber------->'+mobNumber);*/
         String invalidNumber;
         FailureWrapper failureWrap = new FailureWrapper();
         try{
-            system.debug('phoneNumber-------->'+phoneNumber);
-            system.debug('conName-------->'+conName);
-            system.debug('templateName------------------>'+templateName);
             
             DhruvsoftWATI__API_Configurations__mdt watiAPIConfig = getAPIConfigs();
             string paramValue = conName;
@@ -1444,10 +1254,7 @@ system.debug('mobNumber------->'+mobNumber);*/
             sendTempWrap.template_name = templateName;
             sendTempWrap.broadcast_name = templateName;
             
-            system.debug('parms--------------------->'+JSON.serialize(parms));
             sendTempWrap.parameters = parms;
-            system.debug('sendparams----------------->'+sendTempWrap.parameters);
-            
             
             Http http = new Http();
             HttpRequest request = new HttpRequest();
@@ -1457,16 +1264,11 @@ system.debug('mobNumber------->'+mobNumber);*/
             request.setHeader('Content-Type', 'application/json-patch+json');
             request.setTimeout(2000);
             request.setBody(JSON.serialize(sendTempWrap));
-            system.debug('serializedData--------------->'+JSON.serialize(sendTempWrap));
             HttpResponse response = http.send(request);
-            system.debug('StatusCode----------->'+response.getStatusCode());
-            system.debug('Status--------------->'+response.getStatus());
             
             if(response.getStatusCode() == 200){
-                system.debug('ResponseBody------------>'+JSON.deserializeUntyped(response.getBody()));
                 object results = (object)JSON.deserializeUntyped(response.getBody());
                 Map<String,Object> tempMap = (Map<String,Object>)results;
-                system.debug('id '+tempMap.get('result'));
                 Boolean resultResp = (Boolean)tempMap.get('result');
                 if(resultResp == true){
                     isSuccess = true;
@@ -1474,14 +1276,12 @@ system.debug('mobNumber------->'+mobNumber);*/
                     isSuccess = false;
                     failureWrap = new FailureWrapper();
                     failureWrap = (FailureWrapper)JSON.deserialize(response.getBody(), FailureWrapper.class);
-                    system.debug('failureWrap----->'+failureWrap);
                 }
             }else{
                 
             }
             
         }catch(exception e){
-            system.debug('sendTemplate--->exception--->'+e.getMessage()+'Line Number '+e.getLineNumber());
             isSuccess = false;
             failureWrap = new FailureWrapper();
             failureWrap.result = isSuccess;
@@ -1490,7 +1290,6 @@ system.debug('mobNumber------->'+mobNumber);*/
         waitMainWrapperData.isSuccess = isSuccess;
         waitMainWrapperData.errorDetails = failureWrap;
         waitMainWrapperData.invalidMobileNumber = invalidNumber;
-        system.debug('waitMainWrapperData------>'+waitMainWrapperData);
         return waitMainWrapperData;
     }
     
