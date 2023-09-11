@@ -11,6 +11,10 @@ import deleteQuickResponse from '@salesforce/apex/QuickResponseController.delete
 import { NavigationMixin } from 'lightning/navigation'
 import { loadStyle } from 'lightning/platformResourceLoader';
 import UtilityBarStyling from '@salesforce/resourceUrl/UtilityBarStyling';
+import WhatsAppSingetickIcon from '@salesforce/resourceUrl/WhatsAppSingetick';
+import 	WhatsAppDoubleTickIcon from '@salesforce/resourceUrl/WhatsAppDoubleTick';
+import 	WhatsAppBlueTickIcon from '@salesforce/resourceUrl/WhatsAppBlueTick';
+import 	WhatsAppFailedTickIcon from '@salesforce/resourceUrl/WhatsAppFailedTick';
 import getFileVersions from "@salesforce/apex/WhatsAppController.getVersionFiles";
 import refreshMessages from "@salesforce/apex/WhatsAppController.refreshMessages";
 import { subscribe, unsubscribe, onError, setDebugFlag, isEmpEnabled } from 'lightning/empApi';
@@ -63,6 +67,10 @@ export default class SendWhatsappSingleMessage extends NavigationMixin(Lightning
     buttonClicked = false;
     filebutton = false;
     enterKeyPressed = false;
+    @track singeTick = WhatsAppSingetickIcon;
+    @track doubleTick = WhatsAppDoubleTickIcon;
+    @track blueTick = WhatsAppBlueTickIcon;
+    @track failedTick = WhatsAppFailedTickIcon;
     @api channelName = '/event/WATI_Event__e';
 
     label = {
