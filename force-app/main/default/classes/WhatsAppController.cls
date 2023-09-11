@@ -99,7 +99,7 @@ public class WhatsAppController {
             request.setHeader('Authorization', 'Bearer '+watiAPIConfig.API_Key__c);
             request.setMethod('GET');
             HttpResponse response = http.send(request);
-          
+            
             if(response.getStatusCode() == 200){
                 isSuccess = true;
                 ResponseWrapper responseWrapper = (ResponseWrapper)JSON.deserialize(response.getBody(), ResponseWrapper.class);
@@ -143,13 +143,38 @@ public class WhatsAppController {
                                     messWrap.fileName = fileName;
                                     messWrap.textMessage = fileIdList.get(fileName); 
                                 }
+                                if(textMessage.statusString == 'SENT'){
+                                    messWrap.singleTick = true;
+                                }else if(textMessage.statusString == 'DELIVERED'){
+                                    messWrap.doubleTick = true;
+                                }else if(textMessage.statusString == 'READ'){
+                                    messWrap.blueTick = true;
+                                }else if(textMessage.statusString == 'FAILED'){
+                                    messWrap.failedTick = true;
+                                }
                             }else{
                                 messWrap.textMessage = textMessage.text;
+                                if(textMessage.statusString == 'SENT'){
+                                    messWrap.singleTick = true;
+                                }else if(textMessage.statusString == 'DELIVERED'){
+                                    messWrap.doubleTick = true;
+                                }else if(textMessage.statusString == 'READ'){
+                                    messWrap.blueTick = true;
+                                }else if(textMessage.statusString == 'FAILED'){
+                                    messWrap.failedTick = true;
+                                }
                             }
                             messWrap.messageStatus = textMessage.owner;
                         }else if(textMessage.eventType == 'broadcastMessage'){
                             messWrap.textMessage = textMessage.finalText;
                             messWrap.messageStatus = true;
+                            if(textMessage.statusString == 'SENT'){
+                                messWrap.singleTick = true;
+                            }else if(textMessage.statusString == 'DELIVERED'){
+                                messWrap.doubleTick = true;
+                            }else if(textMessage.statusString == 'READ'){
+                                messWrap.blueTick = true;
+                            }
                         }
                         messWrap.createdDate = textMessage.created;
                         if(String.isNotBlank(messWrap.textMessage)){
@@ -324,13 +349,40 @@ public class WhatsAppController {
                                     messWrap.fileName = fileName;
                                     messWrap.textMessage = fileIdList.get(fileName); 
                                 }
+                                if(textMessage.statusString == 'SENT'){
+                                    messWrap.singleTick = true;
+                                }else if(textMessage.statusString == 'DELIVERED'){
+                                    messWrap.doubleTick = true;
+                                }else if(textMessage.statusString == 'READ'){
+                                    messWrap.blueTick = true;
+                                }else if(textMessage.statusString == 'FAILED'){
+                                    messWrap.failedTick = true;
+                                }
                             }else{
                                 messWrap.textMessage = textMessage.text;
+                                if(textMessage.statusString == 'SENT'){
+                                    messWrap.singleTick = true;
+                                }else if(textMessage.statusString == 'DELIVERED'){
+                                    messWrap.doubleTick = true;
+                                }else if(textMessage.statusString == 'READ'){
+                                    messWrap.blueTick = true;
+                                }else if(textMessage.statusString == 'FAILED'){
+                                    messWrap.failedTick = true;
+                                }
                             }
                             messWrap.messageStatus = textMessage.owner;
                         }else if(textMessage.eventType == 'broadcastMessage'){
                             messWrap.textMessage = textMessage.finalText;
                             messWrap.messageStatus = true;
+                            if(textMessage.statusString == 'SENT'){
+                                messWrap.singleTick = true;
+                            }else if(textMessage.statusString == 'DELIVERED'){
+                                messWrap.doubleTick = true;
+                            }else if(textMessage.statusString == 'READ'){
+                                messWrap.blueTick = true;
+                            }else if(textMessage.statusString == 'FAILED'){
+                                messWrap.failedTick = true;
+                            }
                         }
                         messWrap.createdDate = textMessage.created;
                         if(String.isNotBlank(messWrap.textMessage)){
@@ -1042,13 +1094,40 @@ public class WhatsAppController {
                                     messWrap.fileName = fileName;
                                     messWrap.textMessage = fileIdList.get(fileName); 
                                 }
+                                if(textMessage.statusString == 'SENT'){
+                                    messWrap.singleTick = true;
+                                }else if(textMessage.statusString == 'DELIVERED'){
+                                    messWrap.doubleTick = true;
+                                }else if(textMessage.statusString == 'READ'){
+                                    messWrap.blueTick = true;
+                                }else if(textMessage.statusString == 'FAILED'){
+                                    messWrap.failedTick = true;
+                                }
                             }else{
                                 messWrap.textMessage = textMessage.text;
+                                if(textMessage.statusString == 'SENT'){
+                                    messWrap.singleTick = true;
+                                }else if(textMessage.statusString == 'DELIVERED'){
+                                    messWrap.doubleTick = true;
+                                }else if(textMessage.statusString == 'READ'){
+                                    messWrap.blueTick = true;
+                                }else if(textMessage.statusString == 'FAILED'){
+                                    messWrap.failedTick = true;
+                                }
                             }
                             messWrap.messageStatus = textMessage.owner;
                         }else if(textMessage.eventType == 'broadcastMessage'){
                             messWrap.textMessage = textMessage.finalText;
                             messWrap.messageStatus = true;
+                            if(textMessage.statusString == 'SENT'){
+                                messWrap.singleTick = true;
+                            }else if(textMessage.statusString == 'DELIVERED'){
+                                messWrap.doubleTick = true;
+                            }else if(textMessage.statusString == 'READ'){
+                                messWrap.blueTick = true;
+                            }else if(textMessage.statusString == 'FAILED'){
+                                    messWrap.failedTick = true;
+                                }
                         }
                         messWrap.createdDate = textMessage.created;
                         if(String.isNotBlank(messWrap.textMessage)){
@@ -1203,13 +1282,41 @@ string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
                                     messWrap.fileName = fileName;
                                     messWrap.textMessage = fileIdList.get(fileName); 
                                 }
+                                
+                                if(textMessage.statusString == 'SENT'){
+                                    messWrap.singleTick = true;
+                                }else if(textMessage.statusString == 'DELIVERED'){
+                                    messWrap.doubleTick = true;
+                                }else if(textMessage.statusString == 'READ'){
+                                    messWrap.blueTick = true;
+                                }else if(textMessage.statusString == 'FAILED'){
+                                    messWrap.failedTick = true;
+                                }
                             }else{
                                 messWrap.textMessage = textMessage.text;
+                                if(textMessage.statusString == 'SENT'){
+                                    messWrap.singleTick = true;
+                                }else if(textMessage.statusString == 'DELIVERED'){
+                                    messWrap.doubleTick = true;
+                                }else if(textMessage.statusString == 'READ'){
+                                    messWrap.blueTick = true;
+                                }else if(textMessage.statusString == 'FAILED'){
+                                    messWrap.failedTick = true;
+                                }
                             }
                             messWrap.messageStatus = textMessage.owner;
                         }else if(textMessage.eventType == 'broadcastMessage'){
                             messWrap.textMessage = textMessage.finalText;
                             messWrap.messageStatus = true;
+                            if(textMessage.statusString == 'SENT'){
+                                messWrap.singleTick = true;
+                            }else if(textMessage.statusString == 'DELIVERED'){
+                                messWrap.doubleTick = true;
+                            }else if(textMessage.statusString == 'READ'){
+                                messWrap.blueTick = true;
+                            }else if(textMessage.statusString == 'FAILED'){
+                                messWrap.failedTick = true;
+                            }
                         }
                         messWrap.createdDate = textMessage.created;
                         if(String.isNotBlank(messWrap.textMessage)){
@@ -1442,6 +1549,10 @@ string mobNumber = string.valueOf(recordData.get(watiAPIConfig.Phone_Field__c));
         @AuraEnabled Public boolean Doc;
         @AuraEnabled Public String fileName;
         @AuraEnabled Public boolean img;
+        @AuraEnabled public boolean singleTick;
+        @AuraEnabled public boolean doubleTick;
+        @AuraEnabled public boolean blueTick;
+        @AuraEnabled public boolean failedTick;
     }
     public class Parameters {
         public String name;
