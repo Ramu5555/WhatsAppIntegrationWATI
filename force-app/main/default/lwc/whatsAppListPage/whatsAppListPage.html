@@ -83,6 +83,18 @@
                                                                         </lightning-icon>
                                                                     <!-- </a> -->
                                                                 </template>
+                                                                <template if:true={items.singleTick}>
+                                                                    <img src={singeTick} alt="Sent" style="height: 20px; width: 20px;"/>
+                                                                </template>
+                                                                <template if:true={items.doubleTick}>
+                                                                    <img src={doubleTick} alt="Delivered" style="height: 20px; width: 20px;"/>
+                                                                </template>
+                                                                <template if:true={items.blueTick}>
+                                                                    <img src={blueTick} alt="Read" style="height: 20px; width: 20px;"/>
+                                                                </template>
+                                                                <template if:true={items.failedTick}>
+                                                                    <img src={failedTick} alt="Read" style="height: 18px; width: 18px;"/>
+                                                                </template>
                                                             </span>
                                                         </lightning-layout-item>
                                                     </lightning-layout>
@@ -103,7 +115,20 @@
                                                             </span>		
                                                         </lightning-layout-item>
                                                         <lightning-layout-item>
-                                                            <p><lightning-formatted-text value={items.textMessage} style="overflow-wrap: break-word;font-size:120%;"></lightning-formatted-text></p>
+                                                            <p><lightning-formatted-text value={items.textMessage} style="overflow-wrap: break-word;font-size:120%;"></lightning-formatted-text>
+                                                                <template if:true={items.singleTick}>
+                                                                    <img src={singeTick} alt="Sent" style="height: 20px; width: 20px;"/>
+                                                                </template>
+                                                                <template if:true={items.doubleTick}>
+                                                                    <img src={doubleTick} alt="Delivered" style="height: 20px; width: 20px;"/>
+                                                                </template>
+                                                                <template if:true={items.blueTick}>
+                                                                    <img src={blueTick} alt="Read" style="height: 20px; width: 20px;"/>
+                                                                </template>
+                                                                <template if:true={items.failedTick}>
+                                                                    <img src={failedTick} alt="Read" style="height: 18px; width: 18px;"/>
+                                                                </template>
+                                                            </p>
                                                         </lightning-layout-item>
                                                     </lightning-layout>	
                                             </template>

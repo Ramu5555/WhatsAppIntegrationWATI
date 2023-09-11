@@ -13,6 +13,10 @@ import { NavigationMixin } from 'lightning/navigation'
 import { loadStyle } from 'lightning/platformResourceLoader';
 import UtilityBarStyling from '@salesforce/resourceUrl/UtilityBarStyling';
 import WhatsAppMessageBackground from '@salesforce/resourceUrl/WhatsAppMessageBackground';
+import WhatsAppSingetickIcon from '@salesforce/resourceUrl/WhatsAppSingetick';
+import 	WhatsAppDoubleTickIcon from '@salesforce/resourceUrl/WhatsAppDoubleTick';
+import 	WhatsAppBlueTickIcon from '@salesforce/resourceUrl/WhatsAppBlueTick';
+import 	WhatsAppFailedTickIcon from '@salesforce/resourceUrl/WhatsAppFailedTick';
 import getFileVersions from "@salesforce/apex/WhatsAppController.getVersionFiles";
 import refreshMessagesListPage from "@salesforce/apex/WhatsAppController.refreshMessagesListPage";
 import getContactList from '@salesforce/apex/WhatsAppController.getContactList';
@@ -101,6 +105,10 @@ export default class WhatsAppListPage extends NavigationMixin(LightningElement) 
     @track sendTemplate = false;
     @track recPhoneNumber;
     imageUrl=WhatsAppMessageBackground;
+    @track singeTick = WhatsAppSingetickIcon;
+    @track doubleTick = WhatsAppDoubleTickIcon;
+    @track blueTick = WhatsAppBlueTickIcon;
+    @track failedTick = WhatsAppFailedTickIcon;
     @track recContactName;
     @track filterValue = 'All Chats';
 
